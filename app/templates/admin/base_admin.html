@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin{% endblock %} — Administration</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=4">
+</head>
+<body class="admin-body">
+
+  <div class="admin-layout">
+
+    <aside class="admin-sidebar">
+      <h2 class="admin-logo">🌿 Admin</h2>
+      <nav class="admin-nav">
+        <a href="{{ url_for('main.accueil') }}" class="admin-nav-boutique">🛍️ Retour à la boutique</a>
+        <a href="{{ url_for('main.admin') }}">Tableau de bord</a>
+        <a href="{{ url_for('main.admin_produits') }}">Produits</a>
+        <a href="{{ url_for('main.nouveau_produit') }}">Nouveau produit</a>
+        <a href="{{ url_for('main.admin_categories') }}">Catégories</a>
+        <a href="{{ url_for('main.admin_categories_principales') }}">Catégories principales</a>
+        <a href="{{ url_for('main.nouvelle_categorie') }}">Nouvelle catégorie</a>
+        <a href="{{ url_for('main.admin_commandes') }}">Commandes</a>
+        <a href="{{ url_for('main.admin_livraison') }}">Livraison</a>
+        <a href="{{ url_for('main.admin_apparence') }}">Apparence</a>
+        <a href="{{ url_for('main.admin_logout') }}">Déconnexion</a>
+      </nav>
+    </aside>
+
+    <main class="admin-content">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          <div class="admin-flash">
+            {% for message in messages %}
+            <p>{{ message }}</p>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+
+  </div>
+
+</body>
+</html>

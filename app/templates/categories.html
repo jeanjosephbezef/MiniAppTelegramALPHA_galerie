@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% from "_topbar.html" import topbar %}
+
+{% block title %}
+Catégories
+{% endblock %}
+
+{% block content %}
+
+{{ topbar("Catégories") }}
+
+<div class="categories-page">
+
+    {% for principale in categories_principales %}
+    <a href="{{ url_for('main.categorie_principale_detail', id=principale.id) }}" class="big-category-card">
+        {% if principale.image and principale.image != 'default.jpg' %}
+        <img src="{{ url_for('static', filename='images/' + principale.image) }}" alt="{{ principale.nom }}">
+        {% endif %}
+        <h3>{{ principale.nom }}</h3>
+    </a>
+    {% else %}
+    <p>Aucune catégorie pour le moment.</p>
+    {% endfor %}
+
+</div>
+
+{% endblock %}

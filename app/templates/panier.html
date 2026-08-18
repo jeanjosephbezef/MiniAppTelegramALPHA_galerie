@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% from "_topbar.html" import topbar %}
+
+{% block content %}
+{{ topbar("Panier") }}
+
+{% if panier %}
+<div class="panier-liste">
+  {% for item in panier %}
+  <div class="card panier-ligne">
+    <div class="panier-infos">
+      <h2>{{ item.nom }}</h2>
+      <p>{{ item.quantite }} × {{ "%.2f"|format(item.prix_unitaire) }} €</p>
+    </div>
+    <div class="panier-actions">
+      <strong>{{ "%.2f"|format(item.prix) }} €</strong>
+      <a href="{{ url_for('main.retirer_panier', index=loop.index0) }}">
+        <button type="button">✕ Retirer</button>
+      </a>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="panier-total">
+  <h2>Total : {{ "%.2f"|format(total) }} €</h2>
+</div>
+
+<div class="panier-boutons">
+  <a href="{{ url_for('main.vider_panier') }}">
+    <button type="button">Vider le panier</button>
+  </a>
+  <a href="{{ url_for('main.commande') }}">
+    <button type="button">Passer la commande →</button>
+  </a>
+</div>
+
+{% else %}
+<p>Ton panier est vide pour le moment.</p>
+<a href="{{ url_for('main.liste_produits') }}">
+  <button type="button">Voir les produits</button>
+</a>
+{% endif %}
+{% endblock %}

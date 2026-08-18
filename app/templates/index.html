@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<section class="hero">
+    <div class="logo">🌿 LE FILON 74</div>
+    <p>Rapidité • Discretion • Qualité</p>
+    <a href="#produits"><button>Découvrir la boutique</button></a>
+</section>
+
+<h1 id="produits">Nos produits</h1>
+
+<div class="produits">
+  {% for produit in produits %}
+  <div class="card">
+    {% if produit.image %}
+    <img src="{{ url_for('static', filename='images/' + produit.image) }}" alt="{{ produit.nom }}">
+    {% endif %}
+
+    <h2>{{ produit.nom }}</h2>
+    <p>{{ produit.description }}</p>
+
+    {% if produit.thc %}<p>THC : {{ produit.thc }}</p>{% endif %}
+    {% if produit.origine %}<p>Origine : {{ produit.origine }}</p>{% endif %}
+
+    {% if produit.variantes %}
+    <h3>À partir de {{ "%.2f"|format((produit.variantes|min(attribute='prix')).prix) }} €</h3>
+    {% endif %}
+
+    <a href="/produit/{{ produit.id }}">
+      <button>Voir</button>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

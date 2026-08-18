@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>Finaliser la commande</h1>
+
+{% if erreur %}
+<p class="admin-error">{{ erreur }}</p>
+{% endif %}
+
+<div class="card">
+<h2>Récapitulatif</h2>
+  {% for item in panier %}
+<p>{{ item.quantite }} × {{ item.nom }} — {{ "%.2f"|format(item.prix) }} €</p>
+  {% endfor %}
+<h3>Total produits : {{ "%.2f"|format(total) }} €</h3>
+</div>
+
+<form method="POST" class="admin-form" id="form-commande">
+
+<label for="client">Ton prénom</label>
+<input type="text" id="client" name="client" required>
+
+<input type="hidden" id="telegram_id" name="telegram_id" value="">
+<input type="hidden" id="init_data" name="init_data" value="">
+
+<label>Mode de retrait</label>
+<div class="toggle-champ">
+<label>
+<input type="radio" name="mode" value="meetup" checked> Meet up
+</label>
+</div>
+<div class="toggle-champ">
+<label>
+<input type="radio" name="mode" value="livraison"> Livraison
+</label>
+</div>
+
+<div id="bloc-livraison" hidden>
+
+    {% if parametre %}
+<p class="admin-hint">Livraison disponible à partir de {{ "%.2f"|format(parametre.minimum_livraison) }} € de commande.</p>
+    {% endif %}
+
+<label for="adresse">Adresse de livraison</label>
+<input type="text" id="adresse" name="adresse">
+
+<label for="ville">Ville</label>
+<input type="text" id="ville" name="ville" placeholder="ex : Annecy">
+
+    {% if zones %}
+<p class="admin-hint">
+      Frais de livraison appliqués selon la ville :
+      {% for zone in zones %}{{ zone.ville }} ({{ "%.2f"|format(zone.prix) }} €){% if not loop.last %}, {% endif %}{% endfor %}.
+      Pour toute autre ville, aucun frais de livraison n'est ajouté.
+</p>
+    {% else %}
+<p class="admin-hint">Aucune zone configurée pour le moment — aucun frais de livraison ne sera ajouté.</p>
+    {% endif %}
+
+</div>
+
+<button type="submit">Confirmer la commande</button>
+
+</form>
+
+<script>
+document.querySelectorAll('input[name="mode"]').forEach(function (radio) {
+radio.addEventListener('change', function () {
+document.getElementById('bloc-livraison').hidden = (this.value !== 'livraison');
+  });
+});
+
+// Récupère automatiquement le vrai ID Telegram du client depuis la mini-app,
+// pour pouvoir lui répondre directement depuis l'admin (plus fiable qu'une saisie manuelle)
+if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initDataUnsafe && window.Telegram.WebApp.initDataUnsafe.user) {
+document.getElementById('telegram_id').value = window.Telegram.WebApp.initDataUnsafe.user.id;
+}
+
+// initData brut (signé) : c'est celui-ci que le serveur vérifie réellement
+// (initDataUnsafe ci-dessus n'est pas signé, donc pas fiable pour identifier
+// le client côté serveur — il sert juste de repli d'affichage).
+if (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) {
+document.getElementById('init_data').value = window.Telegram.WebApp.initData;
+}
+</script>
+{% endblock %}

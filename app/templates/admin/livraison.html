@@ -1,0 +1,56 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Livraison{% endblock %}
+
+{% block content %}
+<h1>Configuration livraison</h1>
+
+<form method="POST" action="{{ url_for('main.modifier_minimum_livraison') }}" class="admin-form">
+  <label for="minimum_livraison">Montant minimum pour la livraison (€)</label>
+  <input type="number" id="minimum_livraison" name="minimum_livraison"
+         step="0.01" min="0" value="{{ parametre.minimum_livraison }}" required>
+  <button type="submit">Enregistrer le minimum</button>
+</form>
+
+<h2>Villes et frais de livraison</h2>
+
+{% if zones %}
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Ville</th>
+      <th>Frais</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for zone in zones %}
+    <tr>
+      <td>{{ zone.ville }}</td>
+      <td>{{ "%.2f"|format(zone.prix) }} €</td>
+      <td>
+        <a href="{{ url_for('main.supprimer_zone_livraison', id=zone.id) }}">🗑️</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Aucune ville configurée pour le moment.</p>
+{% endif %}
+
+<h2>Ajouter / modifier une ville</h2>
+<p class="admin-hint">Si la ville existe déjà, son prix sera simplement mis à jour.</p>
+
+<form method="POST" action="{{ url_for('main.nouvelle_zone_livraison') }}" class="admin-form">
+
+  <label for="ville">Ville</label>
+  <input type="text" id="ville" name="ville" required>
+
+  <label for="prix">Frais (€)</label>
+  <input type="number" id="prix" name="prix" step="0.01" min="0" required>
+
+  <button type="submit">Enregistrer</button>
+
+</form>
+{% endblock %}

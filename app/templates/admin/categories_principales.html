@@ -1,0 +1,47 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Catégories principales{% endblock %}
+
+{% block content %}
+
+<h1>Catégories principales</h1>
+
+<a href="{{ url_for('main.nouvelle_categorie_principale') }}">
+  <button type="button">➕ Ajouter une catégorie principale</button>
+</a>
+
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Photo</th>
+      <th>Nom</th>
+      <th>Sous-catégories</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for principale in categories_principales %}
+    <tr>
+      <td>
+        {% if principale.image and principale.image != 'default.jpg' %}
+        <img src="{{ url_for('static', filename='images/' + principale.image) }}" alt="{{ principale.nom }}" class="admin-thumb">
+        {% else %}
+        —
+        {% endif %}
+      </td>
+      <td>{{ principale.nom }}</td>
+      <td>{{ principale.sous_categories|length }}</td>
+      <td>
+        <a href="{{ url_for('main.supprimer_categorie_principale', id=principale.id) }}"
+           onclick="return confirm('Supprimer cette catégorie principale ? Les sous-catégories liées perdront leur rattachement.');">🗑️</a>
+      </td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="4">Aucune catégorie principale pour le moment.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

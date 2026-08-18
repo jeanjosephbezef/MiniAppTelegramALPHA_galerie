@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+Le Filon 74
+</title>
+
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+
+</head>
+
+
+<body {% if apparence and apparence.fond_ecran %}style="background-image:url('{{ url_for('static', filename='images/' + apparence.fond_ecran) }}');"{% endif %} class="{% if apparence and apparence.dock_categories_actif and categories_dock %}has-dock{% endif %}">
+
+
+<main>
+
+
+{% block content %}
+
+{% endblock %}
+
+
+</main>
+
+
+
+{% if apparence and apparence.dock_categories_actif and categories_dock %}
+<nav class="category-dock">
+    {% for cat in categories_dock %}
+    <a
+        href="{{ url_for('main.categorie', nom=cat.nom) }}"
+        class="dock-item{% if request.view_args and request.view_args.get('nom') == cat.nom %} active{% endif %}"
+    >
+        {% if cat.image %}
+        <img src="{{ url_for('static', filename='images/' + cat.image) }}" alt="">
+        {% else %}
+        <span class="dock-icon">🌿</span>
+        {% endif %}
+        <span class="dock-label">{{ cat.nom }}</span>
+    </a>
+    {% endfor %}
+</nav>
+{% endif %}
+
+
+<footer>
+
+<p>
+© LE FILON 74 - Boutique Premium
+</p>
+
+</footer>
+
+
+
+</body>
+
+</html>

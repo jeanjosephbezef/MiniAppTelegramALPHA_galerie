@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="hero">
+    <h1>✅ Commande confirmée</h1>
+    <p>Merci ! Ta commande a bien été enregistrée, on te recontacte très vite.</p>
+</section>
+
+<a href="{{ url_for('main.accueil') }}">
+  <button type="button">Retour à l'accueil</button>
+</a>
+{% endblock %}

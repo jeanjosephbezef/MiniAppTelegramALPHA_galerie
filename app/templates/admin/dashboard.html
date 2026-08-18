@@ -1,0 +1,81 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<h1>Tableau de bord</h1>
+
+<div class="admin-stats">
+<div class="stat-card">
+<span class="stat-number">{{ stats.nb_produits }}</span>
+<span class="stat-label">Produits</span>
+</div>
+
+<div class="stat-card">
+<span class="stat-number">{{ stats.nb_commandes }}</span>
+<span class="stat-label">Commandes</span>
+</div>
+
+<div class="stat-card">
+<span class="stat-number">{{ stats.commandes_attente }}</span>
+<span class="stat-label">En attente</span>
+</div>
+</div>
+
+<div class="admin-section-header">
+    <h2>Dernières commandes</h2>
+    <a href="{{ url_for('main.admin_commandes') }}">Voir toutes les commandes →</a>
+    {% if dernieres_commandes %}
+    <a href="{{ url_for('main.vider_commandes') }}"
+       onclick="return confirm('Effacer tout l\'historique des commandes ? Cette action est irréversible.');">
+        🗑️ Effacer l'historique
+    </a>
+    {% endif %}
+</div>
+
+{% if dernieres_commandes %}
+<table class="admin-table">
+<thead>
+<tr>
+<th>Client</th>
+<th>Articles</th>
+<th>Total</th>
+<th>Mode</th>
+<th>Statut</th>
+<th>Date</th>
+<th>Actions</th>
+</tr>
+</thead>
+<tbody>
+    {% for commande in dernieres_commandes %}
+<tr>
+<td>{{ commande.client }}</td>
+<td>
+{% for article in commande.articles %}
+{{ article.quantite }} × {{ article.nom }}{% if not loop.last %}<br>{% endif %}
+{% else %}
+—
+{% endfor %}
+</td>
+<td>{{ commande.total }} €</td>
+<td>{{ commande.mode_retrait }}</td>
+<td>{{ commande.statut }}</td>
+<td>{{ commande.date }}</td>
+<td>
+    {% if commande.statut == "En attente" %}
+    <a href="{{ url_for('main.terminer_commande', id=commande.id) }}"
+       onclick="return confirm('Marquer cette commande comme terminée ?');">✅ Terminée</a>
+    <a href="{{ url_for('main.annuler_commande', id=commande.id) }}"
+       onclick="return confirm('Annuler cette commande ?');">❌ Annuler</a>
+    {% else %}
+    —
+    {% endif %}
+</td>
+</tr>
+    {% endfor %}
+</tbody>
+</table>
+{% else %}
+<p>Aucune commande pour le moment.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,93 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Apparence{% endblock %}
+
+{% block content %}
+<h1>Apparence de l'appli</h1>
+
+<div class="apparence-grid">
+
+<section class="apparence-section">
+<h2 class="apparence-soustitre">Fond d'écran</h2>
+
+    {% if parametre.fond_ecran %}
+<div class="fond-apercu">
+<img src="{{ url_for('static', filename='images/' + parametre.fond_ecran) }}" alt="Fond d'écran actuel">
+</div>
+    {% else %}
+<p class="apparence-note">Aucun fond personnalisé : l'image par défaut du thème est utilisée.</p>
+    {% endif %}
+
+<form method="POST" enctype="multipart/form-data" class="admin-form">
+<input type="hidden" name="action" value="fond">
+
+<label for="fond_ecran">Nouvelle image de fond</label>
+<input type="file" id="fond_ecran" name="fond_ecran" accept="image/*" required>
+
+<button type="submit">Appliquer ce fond d'écran</button>
+</form>
+
+    {% if parametre.fond_ecran %}
+<form method="POST" class="admin-form apparence-reset-form">
+<input type="hidden" name="action" value="reset_fond">
+<button type="submit" class="btn-secondaire">Revenir au fond par défaut</button>
+</form>
+    {% endif %}
+</section>
+
+<section class="apparence-section">
+<h2 class="apparence-soustitre">Dock catégories</h2>
+<p class="apparence-note">
+      Affiche une barre avec les catégories en bas de l'appli, sur toutes les pages,
+      pour un accès rapide façon application mobile.
+</p>
+
+<form method="POST" class="admin-form">
+<input type="hidden" name="action" value="dock">
+
+<label class="apparence-toggle">
+<input
+type="checkbox"
+name="dock_categories_actif"
+{% if parametre.dock_categories_actif %}checked{% endif %}
+>
+        Afficher le dock des catégories dans l'appli
+</label>
+
+<button type="submit">Enregistrer</button>
+</form>
+
+    {% if not categories_dock %}
+<p class="apparence-note">
+      Aucune catégorie créée pour le moment — le dock restera vide tant qu'aucune
+<a href="{{ url_for('main.nouvelle_categorie') }}">catégorie</a> n'existe.
+</p>
+    {% endif %}
+</section>
+
+<section class="apparence-section">
+<h2 class="apparence-soustitre">Annonce</h2>
+<p class="apparence-note">
+      Affiche un bandeau d'annonce en haut de l'accueil de l'appli.
+      Laisse le champ vide pour ne rien afficher.
+</p>
+
+<form method="POST" class="admin-form">
+<input type="hidden" name="action" value="annonce">
+
+<label for="annonce_texte">Texte de l'annonce</label>
+<input
+type="text"
+id="annonce_texte"
+name="annonce_texte"
+maxlength="255"
+value="{{ parametre.annonce_texte or '' }}"
+placeholder="Ex : Maintenance prévue le 20 août">
+
+<button type="submit">Enregistrer</button>
+</form>
+</section>
+
+</div>
+
+{% endblock %}

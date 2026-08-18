@@ -1,0 +1,305 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Modifier {{ produit.nom }}{% endblock %}
+
+{% block content %}
+<h1>Modifier « {{ produit.nom }} »</h1>
+
+{% set cbd_actif = produit.cbd is not none and produit.cbd != '' %}
+{% set cbd_taux_actif = cbd_actif and produit.cbd != 'Oui' %}
+{% set thc_actif = produit.thc is not none and produit.thc != '' %}
+{% set thc_taux_actif = thc_actif and produit.thc != 'Oui' %}
+
+<form method="POST" enctype="multipart/form-data" class="admin-form">
+
+  <label for="nom">Nom</label>
+  <input type="text" id="nom" name="nom" value="{{ produit.nom }}" required>
+
+  <label for="description">Description</label>
+  <textarea id="description" name="description" rows="4" required>{{ produit.description }}</textarea>
+
+  {% set sous_cat_actuelle = categories|selectattr("nom", "equalto", produit.categorie)|first %}
+
+  <label for="categorie_principale">Catégorie principale</label>
+  <select id="categorie_principale">
+    <option value="">— Choisir —</option>
+    {% for principale in categories_principales %}
+    <option value="{{ principale.id }}"
+      {% if sous_cat_actuelle and sous_cat_actuelle.categorie_principale_id == principale.id %}selected{% endif %}>
+      {{ principale.nom }}
+    </option>
+    {% endfor %}
+  </select>
+
+  <label for="categorie">Sous-catégorie</label>
+  <select id="categorie" name="categorie" required>
+    {% for cat in categories %}
+    <option value="{{ cat.nom }}" data-principale="{{ cat.categorie_principale_id or '' }}"
+      {% if cat.nom == produit.categorie %}selected{% endif %}>{{ cat.nom }}</option>
+    {% endfor %}
+  </select>
+
+  <div class="toggle-champ">
+    <label class="toggle-switch">
+      <input type="checkbox" id="a_cbd" {% if cbd_actif %}checked{% endif %}>
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">Ce produit contient du CBD</span>
+  </div>
+  <div id="cbd_field" class="champ-optionnel" {% if not cbd_actif %}hidden{% endif %}>
+    <div class="toggle-champ toggle-champ--inner">
+      <label class="toggle-switch">
+        <input type="checkbox" id="cbd_avec_taux" {% if cbd_taux_actif %}checked{% endif %}>
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">Préciser un taux</span>
+    </div>
+    <div id="cbd_taux_wrapper" {% if not cbd_taux_actif %}hidden{% endif %}>
+      <label for="cbd">Taux CBD</label>
+      <input type="text" id="cbd" name="cbd" placeholder="ex : 15%"
+             value="{% if cbd_taux_actif %}{{ produit.cbd }}{% endif %}"
+             {% if not cbd_taux_actif %}disabled{% endif %}>
+    </div>
+    <input type="hidden" id="cbd_present" name="cbd" value="Oui"
+           {% if not (cbd_actif and not cbd_taux_actif) %}disabled{% endif %}>
+  </div>
+
+  <div class="toggle-champ">
+    <label class="toggle-switch">
+      <input type="checkbox" id="a_thc" {% if thc_actif %}checked{% endif %}>
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">Ce produit contient du THC</span>
+  </div>
+  <div id="thc_field" class="champ-optionnel" {% if not thc_actif %}hidden{% endif %}>
+    <div class="toggle-champ toggle-champ--inner">
+      <label class="toggle-switch">
+        <input type="checkbox" id="thc_avec_taux" {% if thc_taux_actif %}checked{% endif %}>
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">Préciser un taux</span>
+    </div>
+    <div id="thc_taux_wrapper" {% if not thc_taux_actif %}hidden{% endif %}>
+      <label for="thc">Taux THC</label>
+      <input type="text" id="thc" name="thc" placeholder="ex : 0.3%"
+             value="{% if thc_taux_actif %}{{ produit.thc }}{% endif %}"
+             {% if not thc_taux_actif %}disabled{% endif %}>
+    </div>
+    <input type="hidden" id="thc_present" name="thc" value="Oui"
+           {% if not (thc_actif and not thc_taux_actif) %}disabled{% endif %}>
+  </div>
+
+  <label for="origine">Origine</label>
+  <input type="text" id="origine" name="origine" value="{{ produit.origine or '' }}">
+
+  <label for="image">Image</label>
+  {% if produit.image and produit.image != 'default.jpg' %}
+  <p class="admin-hint">
+    Image actuelle : {{ produit.image }} — choisis un fichier ci-dessous pour la remplacer, ou coche la case pour la supprimer.
+  </p>
+  <img src="{{ url_for('static', filename='images/' + produit.image) }}"
+       alt="{{ produit.nom }}" style="max-width:160px;border-radius:12px;margin-bottom:12px;display:block;">
+  <label class="toggle-champ">
+    <input type="checkbox" name="supprimer_image" style="width:auto;">
+    <span class="toggle-label">🗑️ Supprimer l'image actuelle (repasse à l'image par défaut)</span>
+  </label>
+  {% endif %}
+  <input type="file" id="image" name="image" accept="image/*">
+
+  <label for="video">Vidéo</label>
+  <p class="admin-hint">
+    {% if produit.video %}
+    Vidéo actuelle : {{ produit.video }} — choisis un fichier ci-dessous pour la remplacer, ou coche la case pour la supprimer.
+    {% else %}
+    Aucune vidéo pour ce produit. Formats acceptés : mp4, mov, webm.
+    {% endif %}
+  </p>
+  {% if produit.video %}
+  <label class="toggle-champ">
+    <input type="checkbox" name="supprimer_video" style="width:auto;">
+    <span class="toggle-label">🗑️ Supprimer la vidéo actuelle</span>
+  </label>
+  {% endif %}
+  <input type="file" id="video" name="video" accept="video/mp4,video/quicktime,video/webm">
+
+  <label>Galerie (photos / vidéos supplémentaires)</label>
+  {% if produit.medias %}
+  <p class="admin-hint">Décoche une case pour retirer un média de la galerie lors de l'enregistrement.</p>
+  <div class="galerie-admin-liste">
+    {% for m in produit.medias %}
+    <label class="galerie-admin-item">
+      {% if m.type == 'video' %}
+      <video src="{{ url_for('static', filename='videos/' + m.fichier) }}" muted></video>
+      {% else %}
+      <img src="{{ url_for('static', filename='images/' + m.fichier) }}" alt="">
+      {% endif %}
+      <span class="galerie-admin-supprimer">
+        <input type="checkbox" name="supprimer_media[]" value="{{ m.id }}">
+        Retirer
+      </span>
+    </label>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <label for="photos_supplementaires">Ajouter des photos à la galerie</label>
+  <p class="admin-hint">S'ajoutent aux miniatures déjà présentes ci-dessus.</p>
+  <input type="file" id="photos_supplementaires" name="photos_supplementaires[]" accept="image/*" multiple>
+
+  <label for="videos_supplementaires">Ajouter des vidéos à la galerie</label>
+  <input type="file" id="videos_supplementaires" name="videos_supplementaires[]" accept="video/mp4,video/quicktime,video/webm" multiple>
+
+  <label>Types (variétés nommées, optionnel)</label>
+  <p class="admin-hint">Exemple : Mimosa, GrapePie, Zkittlez — n'affecte pas le prix (géré par les variantes ci-dessous).</p>
+
+  <div id="types-liste">
+    {% for t in produit.types %}
+    <div class="variante-ligne">
+      <input type="text" name="types[]" placeholder="Nom du type" value="{{ t.nom }}">
+      <button type="button" class="btn-supprimer-variante btn-supprimer-type">✕</button>
+    </div>
+    {% else %}
+    <div class="variante-ligne">
+      <input type="text" name="types[]" placeholder="Nom du type (ex: Mimosa)">
+      <button type="button" class="btn-supprimer-variante btn-supprimer-type">✕</button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <button type="button" id="ajouter-type">➕ Ajouter un type</button>
+
+  <label>Variantes (poids / prix)</label>
+  <p class="admin-hint">Le prix affiché aux clients est toujours celui de la variante la moins chère.</p>
+
+  <div id="variantes-liste">
+    {% for v in produit.variantes %}
+    <div class="variante-ligne">
+      <input type="text" name="poids[]" placeholder="Poids (ex: 2g)" value="{{ v.poids }}">
+      <input type="number" name="prix_variante[]" placeholder="Prix (€)" step="0.01" min="0" value="{{ v.prix }}">
+      <button type="button" class="btn-supprimer-variante">✕</button>
+    </div>
+    {% else %}
+    <div class="variante-ligne">
+      <input type="text" name="poids[]" placeholder="Poids (ex: 2g)">
+      <input type="number" name="prix_variante[]" placeholder="Prix (€)" step="0.01" min="0">
+      <button type="button" class="btn-supprimer-variante">✕</button>
+    </div>
+    {% endfor %}
+  </div>
+
+  <button type="button" id="ajouter-variante">➕ Ajouter une variante</button>
+
+  <button type="submit">Enregistrer les modifications</button>
+
+</form>
+
+<script>
+document.getElementById('ajouter-variante').addEventListener('click', function () {
+  const liste = document.getElementById('variantes-liste');
+  const ligne = document.createElement('div');
+  ligne.className = 'variante-ligne';
+  ligne.innerHTML = `
+    <input type="text" name="poids[]" placeholder="Poids (ex: 10g)">
+    <input type="number" name="prix_variante[]" placeholder="Prix (€)" step="0.01" min="0">
+    <button type="button" class="btn-supprimer-variante">✕</button>
+  `;
+  liste.appendChild(ligne);
+});
+
+document.getElementById('ajouter-type').addEventListener('click', function () {
+  const liste = document.getElementById('types-liste');
+  const ligne = document.createElement('div');
+  ligne.className = 'variante-ligne';
+  ligne.innerHTML = `
+    <input type="text" name="types[]" placeholder="Nom du type">
+    <button type="button" class="btn-supprimer-variante btn-supprimer-type">✕</button>
+  `;
+  liste.appendChild(ligne);
+});
+
+document.getElementById('types-liste').addEventListener('click', function (e) {
+  if (e.target.classList.contains('btn-supprimer-type')) {
+    const lignes = document.querySelectorAll('#types-liste .variante-ligne');
+    if (lignes.length > 1) {
+      e.target.closest('.variante-ligne').remove();
+    } else {
+      e.target.closest('.variante-ligne').querySelectorAll('input').forEach(i => i.value = '');
+    }
+  }
+});
+
+document.getElementById('variantes-liste').addEventListener('click', function (e) {
+  if (e.target.classList.contains('btn-supprimer-variante')) {
+    const lignes = document.querySelectorAll('.variante-ligne');
+    if (lignes.length > 1) {
+      e.target.closest('.variante-ligne').remove();
+    } else {
+      e.target.closest('.variante-ligne').querySelectorAll('input').forEach(i => i.value = '');
+    }
+  }
+});
+
+function setupSubstance(mainCheckboxId, wrapperId, tauxCheckboxId, tauxWrapperId, tauxInputId, presentInputId) {
+  const mainCheckbox = document.getElementById(mainCheckboxId);
+  const wrapper = document.getElementById(wrapperId);
+  const tauxCheckbox = document.getElementById(tauxCheckboxId);
+  const tauxWrapper = document.getElementById(tauxWrapperId);
+  const tauxInput = document.getElementById(tauxInputId);
+  const presentInput = document.getElementById(presentInputId);
+
+  function updatePresentInputs() {
+    const substanceActive = mainCheckbox.checked;
+    const tauxActive = substanceActive && tauxCheckbox.checked;
+
+    tauxWrapper.hidden = !tauxActive;
+    tauxInput.disabled = !tauxActive;
+    if (!tauxActive) tauxInput.value = '';
+
+    presentInput.disabled = !(substanceActive && !tauxCheckbox.checked);
+  }
+
+  mainCheckbox.addEventListener('change', function () {
+    wrapper.hidden = !mainCheckbox.checked;
+    if (!mainCheckbox.checked) {
+      tauxCheckbox.checked = false;
+    }
+    updatePresentInputs();
+  });
+
+  tauxCheckbox.addEventListener('change', updatePresentInputs);
+
+  updatePresentInputs();
+}
+
+setupSubstance('a_cbd', 'cbd_field', 'cbd_avec_taux', 'cbd_taux_wrapper', 'cbd', 'cbd_present');
+setupSubstance('a_thc', 'thc_field', 'thc_avec_taux', 'thc_taux_wrapper', 'thc', 'thc_present');
+
+// Filtre la sous-catégorie selon la catégorie principale choisie,
+// en conservant la sélection actuelle au premier chargement
+(function () {
+  const selectPrincipale = document.getElementById('categorie_principale');
+  const selectSousCategorie = document.getElementById('categorie');
+  const toutesOptions = Array.from(selectSousCategorie.options);
+  let premierPassage = true;
+
+  function filtrer() {
+    const principaleId = selectPrincipale.value;
+    const valeurActuelle = selectSousCategorie.value;
+
+    selectSousCategorie.innerHTML = '';
+
+    toutesOptions
+      .filter(opt => !principaleId || opt.dataset.principale === principaleId)
+      .forEach(opt => selectSousCategorie.appendChild(opt.cloneNode(true)));
+
+    if (premierPassage) {
+      selectSousCategorie.value = valeurActuelle;
+      premierPassage = false;
+    }
+  }
+
+  selectPrincipale.addEventListener('change', filtrer);
+  filtrer();
+})();
+</script>
+{% endblock %}

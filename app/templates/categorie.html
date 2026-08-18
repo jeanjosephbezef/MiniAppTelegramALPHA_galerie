@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% from "_topbar.html" import topbar %}
+
+{% block title %}
+{{ nom }}
+{% endblock %}
+
+{% block content %}
+{{ topbar(nom) }}
+
+<div class="produits">
+  {% for produit in produits %}
+  <div class="card produit-card">
+
+    <div class="produit-image-wrapper">
+      <span class="badge-meetup">📍 MEET-UP</span>
+      {% if produit.image %}
+      <img src="{{ url_for('static', filename='images/' + produit.image) }}" alt="{{ produit.nom }}">
+      {% endif %}
+    </div>
+
+    <h2>{{ produit.nom }}</h2>
+    <p class="produit-description">{{ produit.description }}</p>
+
+    {% if produit.cbd %}<p>🌿 CBD : {{ produit.cbd }}</p>{% endif %}
+    {% if produit.thc %}<p>⚖️ THC : {{ produit.thc }}</p>{% endif %}
+    {% if produit.origine %}<p>🌍 Origine : {{ produit.origine }}</p>{% endif %}
+
+    {% if produit.variantes %}
+    <select class="produit-variante-select" data-cible="prix-cat-{{ produit.id }}">
+      {% for v in produit.variantes %}
+      <option value="{{ v.id }}" data-prix="{{ v.prix }}">{{ v.poids }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="produit-prix" id="prix-cat-{{ produit.id }}">
+      {{ "%.2f"|format(produit.variantes[0].prix) }} €
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('main.detail_produit', id=produit.id) }}">
+      <button class="btn-voir-produit">VOIR LE PRODUIT</button>
+    </a>
+
+  </div>
+  {% else %}
+  <p>Aucun produit dans cette catégorie pour le moment.</p>
+  {% endfor %}
+</div>
+
+<script>
+document.querySelectorAll('.produit-variante-select').forEach(function (select) {
+  select.addEventListener('change', function () {
+    const cible = document.getElementById(select.dataset.cible);
+    const prix = select.options[select.selectedIndex].dataset.prix;
+    cible.textContent = parseFloat(prix).toFixed(2) + " €";
+  });
+});
+</script>
+{% endblock %}

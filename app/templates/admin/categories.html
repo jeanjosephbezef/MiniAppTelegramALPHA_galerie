@@ -1,0 +1,43 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Catégories{% endblock %}
+
+{% block content %}
+<div class="admin-header-row">
+  <h1>Catégories</h1>
+  <a href="{{ url_for('main.nouvelle_categorie') }}">
+    <button>➕ Ajouter une catégorie</button>
+  </a>
+</div>
+
+{% if categories %}
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Image</th>
+      <th>Nom</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for cat in categories %}
+    <tr>
+      <td>
+        {% if cat.image %}
+        <img src="{{ url_for('static', filename='images/' + cat.image) }}" alt="{{ cat.nom }}" class="admin-thumb">
+        {% endif %}
+      </td>
+      <td>{{ cat.nom }}</td>
+      <td class="admin-actions">
+        <a href="{{ url_for('main.modifier_categorie', id=cat.id) }}">✏️ Modifier</a>
+        <a href="{{ url_for('main.supprimer_categorie', id=cat.id) }}"
+           onclick="return confirm('Supprimer cette catégorie ?');">🗑️ Supprimer</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Aucune catégorie pour le moment.</p>
+{% endif %}
+{% endblock %}

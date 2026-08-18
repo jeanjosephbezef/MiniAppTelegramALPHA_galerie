@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion Admin</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=4">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body class="admin-login-body">
+
+  <div class="admin-login-box">
+    <h1>🌿 Espace admin</h1>
+
+    <p id="verif-en-cours">🔍 Vérification en cours...</p>
+
+    <div id="acces-refuse" style="display: none;">
+      <p class="admin-error">⛔ Accès refusé.</p>
+    </div>
+
+    <div id="zone-formulaire" style="display: none;">
+      {% with messages = get_flashed_messages() %}
+        {% if messages %}
+          {% for message in messages %}
+          <p class="admin-error">{{ message }}</p>
+          {% endfor %}
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST">
+        <label for="mot_de_passe">Mot de passe</label>
+        <input type="password" id="mot_de_passe" name="mot_de_passe" required>
+        <button type="submit">Se connecter</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var initData = (window.Telegram && window.Telegram.WebApp)
+        ? window.Telegram.WebApp.initData
+        : "";
+
+      fetch("{{ url_for('main.verify_telegram') }}", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData: initData })
+      })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          document.getElementById("verif-en-cours").style.display = "none";
+          if (data.authorized) {
+            document.getElementById("zone-formulaire").style.display = "block";
+          } else {
+            document.getElementById("acces-refuse").style.display = "block";
+          }
+        })
+        .catch(function () {
+          document.getElementById("verif-en-cours").style.display = "none";
+          document.getElementById("acces-refuse").style.display = "block";
+        });
+    })();
+  </script>
+
+</body>
+</html>

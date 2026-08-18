@@ -1,0 +1,76 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Commandes{% endblock %}
+
+{% block content %}
+<h1>Commandes</h1>
+
+{% if commandes %}
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Client</th>
+      <th>Contact</th>
+      <th>Articles</th>
+      <th>Total</th>
+      <th>Mode</th>
+      <th>Détails livraison</th>
+      <th>Statut</th>
+      <th>Date</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for commande in commandes %}
+    <tr>
+      <td>{{ commande.client or '—' }}</td>
+      <td>
+        {% set lien = lien_telegram(commande.telegram_id) %}
+        {% if lien %}
+        <a href="{{ lien }}">✉️ {{ commande.telegram_id }}</a>
+        <form method="POST" action="{{ url_for('main.message_client', id=commande.id) }}" class="mini-message-form">
+          <input type="text" name="message" placeholder="Écrire au client..." required>
+          <button type="submit">Envoyer</button>
+        </form>
+        {% else %}
+        —
+        {% endif %}
+      </td>
+      <td>
+        {% for article in commande.articles %}
+        {{ article.quantite }} × {{ article.nom }}{% if not loop.last %}<br>{% endif %}
+        {% else %}
+        —
+        {% endfor %}
+      </td>
+      <td>{{ "%.2f"|format(commande.total or 0) }} €</td>
+      <td>{{ commande.mode_retrait or '—' }}</td>
+      <td>
+        {% if commande.mode_retrait == 'livraison' %}
+        {{ commande.adresse or 'adresse non renseignée' }}<br>
+        {{ commande.ville or 'ville non renseignée' }}
+        ({{ "%.2f"|format(commande.frais_livraison or 0) }} € de frais)
+        {% else %}
+        —
+        {% endif %}
+      </td>
+      <td>{{ commande.statut }}</td>
+      <td>{{ commande.date }}</td>
+      <td>
+        {% if commande.statut == "En attente" %}
+        <a href="{{ url_for('main.terminer_commande', id=commande.id) }}"
+           onclick="return confirm('Marquer cette commande comme terminée ?');">✅</a>
+        <a href="{{ url_for('main.annuler_commande', id=commande.id) }}"
+           onclick="return confirm('Annuler cette commande ?');">❌</a>
+        {% else %}
+        —
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Aucune commande pour le moment.</p>
+{% endif %}
+{% endblock %}

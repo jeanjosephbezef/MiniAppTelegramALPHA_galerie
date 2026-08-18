@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="admin-container">
+
+    <h1>⚙ Administration - LE FILON 74</h1>
+
+    <div class="dashboard">
+
+        <a href="/admin/produits" class="card-admin">
+            <h2>📦 Produits</h2>
+            <p>Ajouter, modifier ou supprimer les produits.</p>
+        </a>
+
+        <a href="/admin/categories" class="card-admin">
+            <h2>📂 Catégories</h2>
+            <p>Gérer les catégories.</p>
+        </a>
+
+        <a href="/admin/commandes" class="card-admin">
+            <h2>🛒 Commandes</h2>
+            <p>Voir toutes les commandes.</p>
+        </a>
+
+        <a href="/admin/livraison" class="card-admin">
+            <h2>🚚 Livraison</h2>
+            <p>Modifier les frais de livraison.</p>
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

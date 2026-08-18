@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="produit-header">
+  <a href="javascript:history.back()" class="produit-header-fleche">←</a>
+  <h1 class="produit-header-titre">{{ produit.nom }}</h1>
+  <a href="{{ url_for('main.panier') }}" class="produit-header-panier">🛒</a>
+</div>
+
+<div class="fiche-produit" data-produit-id="{{ produit.id }}">
+
+    {% set tous_medias = [] %}
+    {% if produit.video %}
+        {% set _ = tous_medias.append({"type": "video", "fichier": produit.video, "poster": produit.image}) %}
+    {% elif produit.image %}
+        {% set _ = tous_medias.append({"type": "image", "fichier": produit.image}) %}
+    {% endif %}
+    {% for m in produit.medias %}
+        {% set _ = tous_medias.append({"type": m.type, "fichier": m.fichier}) %}
+    {% endfor %}
+
+    {% if tous_medias %}
+    <div class="carrousel-media">
+        <div class="carrousel-piste" id="carrousel-piste">
+            {% for m in tous_medias %}
+            <div class="carrousel-slide">
+                {% if m.type == 'video' %}
+                <video controls playsinline
+                       poster="{% if m.poster %}{{ url_for('static', filename='images/' + m.poster) }}{% endif %}">
+                    <source src="{{ url_for('static', filename='videos/' + m.fichier) }}">
+                </video>
+                {% else %}
+                <img src="{{ url_for('static', filename='images/' + m.fichier) }}" alt="{{ produit.nom }}">
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if tous_medias|length > 1 %}
+        <button type="button" class="carrousel-fleche carrousel-fleche-gauche" id="carrousel-prec">‹</button>
+        <button type="button" class="carrousel-fleche carrousel-fleche-droite" id="carrousel-suiv">›</button>
+
+        <div class="carrousel-points" id="carrousel-points">
+            {% for m in tous_medias %}
+            <span class="carrousel-point{% if loop.first %} active{% endif %}"></span>
+            {% endfor %}
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="infos-produit">
+
+        <div class="produit-titre-prix">
+            <h2>{{ produit.nom }}</h2>
+            {% if produit.variantes %}
+            <span class="produit-prix-affiche" id="prix-total">{{ "%.2f"|format(produit.variantes[0].prix) }} €</span>
+            {% endif %}
+        </div>
+
+        <span class="badge-meetup badge-meetup-inline">📍 MEET-UP</span>
+
+        <div class="details">
+            {% if produit.cbd %}<p>🌿 CBD : <strong>{{ produit.cbd }}</strong></p>{% endif %}
+            {% if produit.thc %}<p>⚖️ THC : <strong>{{ produit.thc }}</strong></p>{% endif %}
+            {% if produit.origine %}<p>🌍 Origine : <strong>{{ produit.origine }}</strong></p>{% endif %}
+        </div>
+
+        {% if produit.types %}
+        <div class="types-choix">
+            <label>Choisir un type</label>
+            <div class="types-grille">
+                {% for t in produit.types %}
+                <label class="type-option">
+                    <input type="radio" name="type_produit" value="{{ t.id }}" {% if loop.first %}checked{% endif %}>
+                    {{ t.nom }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if produit.variantes %}
+        <div class="variantes-choix">
+            <label>Choisir un poids</label>
+            {% for v in produit.variantes %}
+            <label class="variante-option">
+                <input type="radio" name="variante" value="{{ v.id }}"
+                       data-prix="{{ v.prix }}"
+                       {% if loop.first %}checked{% endif %}>
+                {{ v.poids }} — {{ "%.2f"|format(v.prix) }} €
+            </label>
+            {% endfor %}
+        </div>
+
+        <div class="quantite-choix">
+            <label for="quantite">Quantité</label>
+            <button type="button" id="moins">−</button>
+            <input type="number" id="quantite" value="1" min="1">
+            <button type="button" id="plus">+</button>
+        </div>
+
+        <a id="lien-ajouter" href="/ajouter/{{ produit.id }}">
+            <button class="btn-voir-produit">🛒 Ajouter au panier</button>
+        </a>
+        {% else %}
+        <p class="admin-hint">Ce produit n'est pas disponible à la commande pour le moment.</p>
+        {% endif %}
+
+        {% if produit.description %}
+        <p class="produit-description-longue">{{ produit.description }}</p>
+        {% endif %}
+
+    </div>
+
+</div>
+
+{% if tous_medias|length > 1 %}
+<script>
+(function () {
+    const piste = document.getElementById('carrousel-piste');
+    const points = document.querySelectorAll('.carrousel-point');
+    const total = points.length;
+    let index = 0;
+
+    function afficher(i) {
+        index = (i + total) % total;
+        piste.style.transform = `translateX(-${index * 100}%)`;
+        points.forEach((p, n) => p.classList.toggle('active', n === index));
+    }
+
+    document.getElementById('carrousel-prec').addEventListener('click', () => afficher(index - 1));
+    document.getElementById('carrousel-suiv').addEventListener('click', () => afficher(index + 1));
+
+    points.forEach((p, n) => p.addEventListener('click', () => afficher(n)));
+})();
+</script>
+{% endif %}
+
+{% if produit.variantes %}
+<script>
+(function () {
+    const fiche = document.querySelector('.fiche-produit');
+    const produitId = fiche.dataset.produitId;
+
+    const radios = document.querySelectorAll('input[name="variante"]');
+    const quantiteInput = document.getElementById('quantite');
+    const prixTotalEl = document.getElementById('prix-total');
+    const lienAjouter = document.getElementById('lien-ajouter');
+
+    function prixUnitaire() {
+        const selectionne = document.querySelector('input[name="variante"]:checked');
+        return selectionne ? parseFloat(selectionne.dataset.prix) : 0;
+    }
+
+    function mettreAJour() {
+        const qte = parseInt(quantiteInput.value) || 1;
+        const total = prixUnitaire() * qte;
+        prixTotalEl.textContent = total.toFixed(2) + " €";
+
+        let url = `/ajouter/${produitId}?quantite=${qte}`;
+        const selectionne = document.querySelector('input[name="variante"]:checked');
+        if (selectionne) {
+            url += `&variante=${selectionne.value}`;
+        }
+        const typeSelectionne = document.querySelector('input[name="type_produit"]:checked');
+        if (typeSelectionne) {
+            url += `&type=${typeSelectionne.value}`;
+        }
+        lienAjouter.setAttribute('href', url);
+    }
+
+    radios.forEach(r => r.addEventListener('change', mettreAJour));
+    quantiteInput.addEventListener('input', mettreAJour);
+    document.querySelectorAll('input[name="type_produit"]').forEach(r => r.addEventListener('change', mettreAJour));
+
+    document.getElementById('plus').addEventListener('click', () => {
+        quantiteInput.value = (parseInt(quantiteInput.value) || 1) + 1;
+        mettreAJour();
+    });
+    document.getElementById('moins').addEventListener('click', () => {
+        const val = parseInt(quantiteInput.value) || 1;
+        if (val > 1) quantiteInput.value = val - 1;
+        mettreAJour();
+    });
+
+    mettreAJour();
+})();
+</script>
+{% endif %}
+{% endblock %}

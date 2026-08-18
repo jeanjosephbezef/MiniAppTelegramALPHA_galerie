@@ -1,0 +1,30 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Nouvelle catégorie principale{% endblock %}
+
+{% block content %}
+<h1>Nouvelle catégorie principale</h1>
+
+<form method="POST" enctype="multipart/form-data" class="admin-form">
+
+  <label for="nom">Nom</label>
+  <input type="text" id="nom" name="nom" required>
+
+  <label for="image">Image</label>
+  <div class="champ-fichier">
+    <input type="file" id="image" name="image" accept="image/*">
+    <button type="button" class="btn-effacer-fichier" data-cible="image">✕ Retirer</button>
+  </div>
+
+  <button type="submit">Créer la catégorie principale</button>
+
+</form>
+
+<script>
+document.querySelectorAll('.btn-effacer-fichier').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.getElementById(btn.dataset.cible).value = '';
+  });
+});
+</script>
+{% endblock %}

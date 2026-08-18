@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if apparence and apparence.annonce_texte %}
+<div class="bandeau-annonce">
+  <span class="bandeau-icone">📢 INFOS</span>
+  <div class="bandeau-defilant">
+    <span>{{ apparence.annonce_texte }}</span>
+    <span>{{ apparence.annonce_texte }}</span>
+  </div>
+</div>
+{% endif %}
+
+<div class="section-header">
+  <h2>📊 Catégories</h2>
+  <a href="{{ url_for('main.liste_categories') }}">Tout voir →</a>
+</div>
+
+<div class="categories-grille">
+  {% for principale in categories_principales %}
+  <a href="{{ url_for('main.categorie_principale_detail', id=principale.id) }}" class="categorie-tuile">
+    <span class="categorie-tuile-icone">🗂️</span>
+    <span>{{ principale.nom }}</span>
+  </a>
+  {% else %}
+  <p class="admin-hint">Aucune catégorie pour le moment.</p>
+  {% endfor %}
+</div>
+
+<div class="section-header">
+  <h2>✨ Nouveautés</h2>
+  <a href="{{ url_for('main.liste_produits') }}">Tous les produits →</a>
+</div>
+
+<div class="produits-scroll">
+  {% for produit in nouveautes %}
+  <div class="card produit-card produit-card-scroll">
+
+    <div class="produit-image-wrapper">
+      <span class="badge-meetup">📍 MEET-UP</span>
+      {% if produit.image %}
+      <img src="{{ url_for('static', filename='images/' + produit.image) }}" alt="{{ produit.nom }}">
+      {% endif %}
+    </div>
+
+    <h2>{{ produit.nom }}</h2>
+    <p class="produit-description">{{ produit.description }}</p>
+
+    {% if produit.variantes %}
+    <select class="produit-variante-select" data-cible="prix-accueil-{{ produit.id }}">
+      {% for v in produit.variantes %}
+      <option value="{{ v.id }}" data-prix="{{ v.prix }}">{{ v.poids }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="produit-prix" id="prix-accueil-{{ produit.id }}">
+      {{ "%.2f"|format(produit.variantes[0].prix) }} €
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('main.detail_produit', id=produit.id) }}">
+      <button class="btn-voir-produit">VOIR LE PRODUIT</button>
+    </a>
+
+  </div>
+  {% else %}
+  <p class="admin-hint">Aucun produit pour le moment.</p>
+  {% endfor %}
+</div>
+
+<script>
+document.querySelectorAll('.produit-variante-select').forEach(function (select) {
+  select.addEventListener('change', function () {
+    const cible = document.getElementById(select.dataset.cible);
+    const prix = select.options[select.selectedIndex].dataset.prix;
+    cible.textContent = parseFloat(prix).toFixed(2) + " €";
+  });
+});
+</script>
+
+{% endblock %}

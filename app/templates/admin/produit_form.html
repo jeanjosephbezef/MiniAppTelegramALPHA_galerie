@@ -1,0 +1,240 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Nouveau produit{% endblock %}
+
+{% block content %}
+<h1>Nouveau produit</h1>
+
+<form method="POST" enctype="multipart/form-data" class="admin-form">
+
+  <label for="nom">Nom</label>
+  <input type="text" id="nom" name="nom" required>
+
+  <label for="description">Description</label>
+  <textarea id="description" name="description" rows="4" required></textarea>
+
+  <label for="categorie_principale">Catégorie principale</label>
+  <select id="categorie_principale">
+    <option value="">— Choisir —</option>
+    {% for principale in categories_principales %}
+    <option value="{{ principale.id }}">{{ principale.nom }}</option>
+    {% endfor %}
+  </select>
+
+  <label for="categorie">Sous-catégorie</label>
+  <select id="categorie" name="categorie" required>
+    {% for cat in categories %}
+    <option value="{{ cat.nom }}" data-principale="{{ cat.categorie_principale_id or '' }}">{{ cat.nom }}</option>
+    {% endfor %}
+  </select>
+
+  <div class="toggle-champ">
+    <label class="toggle-switch">
+      <input type="checkbox" id="a_cbd">
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">Ce produit contient du CBD</span>
+  </div>
+  <div id="cbd_field" class="champ-optionnel" hidden>
+    <div class="toggle-champ toggle-champ--inner">
+      <label class="toggle-switch">
+        <input type="checkbox" id="cbd_avec_taux">
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">Préciser un taux</span>
+    </div>
+    <div id="cbd_taux_wrapper" hidden>
+      <label for="cbd">Taux CBD</label>
+      <input type="text" id="cbd" name="cbd" placeholder="ex : 15%" disabled>
+    </div>
+    <input type="hidden" id="cbd_present" name="cbd" value="Oui" disabled>
+  </div>
+
+  <div class="toggle-champ">
+    <label class="toggle-switch">
+      <input type="checkbox" id="a_thc">
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">Ce produit contient du THC</span>
+  </div>
+  <div id="thc_field" class="champ-optionnel" hidden>
+    <div class="toggle-champ toggle-champ--inner">
+      <label class="toggle-switch">
+        <input type="checkbox" id="thc_avec_taux">
+        <span class="toggle-slider"></span>
+      </label>
+      <span class="toggle-label">Préciser un taux</span>
+    </div>
+    <div id="thc_taux_wrapper" hidden>
+      <label for="thc">Taux THC</label>
+      <input type="text" id="thc" name="thc" placeholder="ex : 0.3%" disabled>
+    </div>
+    <input type="hidden" id="thc_present" name="thc" value="Oui" disabled>
+  </div>
+
+  <label for="origine">Origine</label>
+  <input type="text" id="origine" name="origine">
+
+  <label for="image">Image</label>
+  <div class="champ-fichier">
+    <input type="file" id="image" name="image" accept="image/*">
+    <button type="button" class="btn-effacer-fichier" data-cible="image">✕ Retirer</button>
+  </div>
+
+  <label for="video">Vidéo (optionnel)</label>
+  <p class="admin-hint">Formats acceptés : mp4, mov, webm.</p>
+  <div class="champ-fichier">
+    <input type="file" id="video" name="video" accept="video/mp4,video/quicktime,video/webm">
+    <button type="button" class="btn-effacer-fichier" data-cible="video">✕ Retirer</button>
+  </div>
+
+  <label for="photos_supplementaires">Photos supplémentaires (galerie)</label>
+  <p class="admin-hint">Ajoute une ou plusieurs photos en plus de l'image principale — elles apparaîtront en miniatures cliquables sur la fiche produit.</p>
+  <input type="file" id="photos_supplementaires" name="photos_supplementaires[]" accept="image/*" multiple>
+
+  <label for="videos_supplementaires">Vidéos supplémentaires (galerie)</label>
+  <input type="file" id="videos_supplementaires" name="videos_supplementaires[]" accept="video/mp4,video/quicktime,video/webm" multiple>
+
+  <label>Types (variétés nommées, optionnel)</label>
+  <p class="admin-hint">Exemple : Mimosa, GrapePie, Zkittlez — le client choisit un type en plus du poids ; ça n'affecte pas le prix (géré par les variantes ci-dessous).</p>
+
+  <div id="types-liste">
+    <div class="variante-ligne">
+      <input type="text" name="types[]" placeholder="Nom du type (ex: Mimosa)">
+      <button type="button" class="btn-supprimer-variante btn-supprimer-type">✕</button>
+    </div>
+  </div>
+
+  <button type="button" id="ajouter-type">➕ Ajouter un type</button>
+
+  <label>Variantes (poids / prix)</label>
+  <p class="admin-hint">Exemple : 2g / 50, 10g / 350 — ajoute au moins une variante, c'est maintenant le seul moyen de fixer le prix du produit.</p>
+
+  <div id="variantes-liste">
+    <div class="variante-ligne">
+      <input type="text" name="poids[]" placeholder="Poids (ex: 2g)">
+      <input type="number" name="prix_variante[]" placeholder="Prix (€)" step="0.01" min="0">
+      <button type="button" class="btn-supprimer-variante">✕</button>
+    </div>
+  </div>
+
+  <button type="button" id="ajouter-variante">➕ Ajouter une variante</button>
+
+  <button type="submit">Créer le produit</button>
+
+</form>
+
+<script>
+document.getElementById('ajouter-variante').addEventListener('click', function () {
+  const liste = document.getElementById('variantes-liste');
+  const ligne = document.createElement('div');
+  ligne.className = 'variante-ligne';
+  ligne.innerHTML = `
+    <input type="text" name="poids[]" placeholder="Poids (ex: 10g)">
+    <input type="number" name="prix_variante[]" placeholder="Prix (€)" step="0.01" min="0">
+    <button type="button" class="btn-supprimer-variante">✕</button>
+  `;
+  liste.appendChild(ligne);
+});
+
+document.getElementById('ajouter-type').addEventListener('click', function () {
+  const liste = document.getElementById('types-liste');
+  const ligne = document.createElement('div');
+  ligne.className = 'variante-ligne';
+  ligne.innerHTML = `
+    <input type="text" name="types[]" placeholder="Nom du type">
+    <button type="button" class="btn-supprimer-variante btn-supprimer-type">✕</button>
+  `;
+  liste.appendChild(ligne);
+});
+
+document.getElementById('types-liste').addEventListener('click', function (e) {
+  if (e.target.classList.contains('btn-supprimer-type')) {
+    const lignes = document.querySelectorAll('#types-liste .variante-ligne');
+    if (lignes.length > 1) {
+      e.target.closest('.variante-ligne').remove();
+    } else {
+      e.target.closest('.variante-ligne').querySelectorAll('input').forEach(i => i.value = '');
+    }
+  }
+});
+
+document.getElementById('variantes-liste').addEventListener('click', function (e) {
+  if (e.target.classList.contains('btn-supprimer-variante')) {
+    const lignes = document.querySelectorAll('.variante-ligne');
+    if (lignes.length > 1) {
+      e.target.closest('.variante-ligne').remove();
+    } else {
+      e.target.closest('.variante-ligne').querySelectorAll('input').forEach(i => i.value = '');
+    }
+  }
+});
+
+// Gère un bloc CBD/THC à deux niveaux :
+// 1) case principale : le produit contient (ou non) la substance
+// 2) case secondaire : on précise un taux exact (champ texte) ou juste "Oui" (présence sans taux)
+// Un seul des deux inputs portant le name="cbd" (ou "thc") est actif à la fois,
+// pour que le formulaire n'envoie jamais qu'une seule valeur.
+function setupSubstance(mainCheckboxId, wrapperId, tauxCheckboxId, tauxWrapperId, tauxInputId, presentInputId) {
+  const mainCheckbox = document.getElementById(mainCheckboxId);
+  const wrapper = document.getElementById(wrapperId);
+  const tauxCheckbox = document.getElementById(tauxCheckboxId);
+  const tauxWrapper = document.getElementById(tauxWrapperId);
+  const tauxInput = document.getElementById(tauxInputId);
+  const presentInput = document.getElementById(presentInputId);
+
+  function updatePresentInputs() {
+    const substanceActive = mainCheckbox.checked;
+    const tauxActive = substanceActive && tauxCheckbox.checked;
+
+    tauxWrapper.hidden = !tauxActive;
+    tauxInput.disabled = !tauxActive;
+    if (!tauxActive) tauxInput.value = '';
+
+    // le champ caché "présence seulement" n'est utilisé que si substance
+    // activée MAIS sans taux précisé
+    presentInput.disabled = !(substanceActive && !tauxCheckbox.checked);
+  }
+
+  mainCheckbox.addEventListener('change', function () {
+    wrapper.hidden = !mainCheckbox.checked;
+    if (!mainCheckbox.checked) {
+      tauxCheckbox.checked = false;
+    }
+    updatePresentInputs();
+  });
+
+  tauxCheckbox.addEventListener('change', updatePresentInputs);
+
+  updatePresentInputs();
+}
+
+setupSubstance('a_cbd', 'cbd_field', 'cbd_avec_taux', 'cbd_taux_wrapper', 'cbd', 'cbd_present');
+setupSubstance('a_thc', 'thc_field', 'thc_avec_taux', 'thc_taux_wrapper', 'thc', 'thc_present');
+
+document.querySelectorAll('.btn-effacer-fichier').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    document.getElementById(btn.dataset.cible).value = '';
+  });
+});
+
+// Filtre la sous-catégorie selon la catégorie principale choisie
+(function () {
+  const selectPrincipale = document.getElementById('categorie_principale');
+  const selectSousCategorie = document.getElementById('categorie');
+  const toutesOptions = Array.from(selectSousCategorie.options);
+
+  function filtrer() {
+    const principaleId = selectPrincipale.value;
+    selectSousCategorie.innerHTML = '';
+
+    toutesOptions
+      .filter(opt => !principaleId || opt.dataset.principale === principaleId)
+      .forEach(opt => selectSousCategorie.appendChild(opt.cloneNode(true)));
+  }
+
+  selectPrincipale.addEventListener('change', filtrer);
+  filtrer();
+})();
+</script>
+{% endblock %}

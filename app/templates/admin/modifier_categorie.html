@@ -1,0 +1,36 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Modifier {{ categorie.nom }}{% endblock %}
+
+{% block content %}
+<h1>Modifier {{ categorie.nom }}</h1>
+
+<form method="POST" enctype="multipart/form-data" class="admin-form">
+
+  <label for="nom">Nom</label>
+  <input type="text" id="nom" name="nom" value="{{ categorie.nom }}" required>
+
+  <label for="categorie_principale_id">Catégorie principale (optionnel)</label>
+  <select id="categorie_principale_id" name="categorie_principale_id">
+    <option value="">Aucune</option>
+    {% for principale in categories_principales %}
+    <option value="{{ principale.id }}" {% if categorie.categorie_principale_id == principale.id %}selected{% endif %}>{{ principale.nom }}</option>
+    {% endfor %}
+  </select>
+
+  {% if categorie.image and categorie.image != 'default.jpg' %}
+  <p>Image actuelle :</p>
+  <img src="{{ url_for('static', filename='images/' + categorie.image) }}" alt="{{ categorie.nom }}" class="admin-thumb">
+  <label class="toggle-champ">
+    <input type="checkbox" name="supprimer_image" style="width:auto;">
+    <span class="toggle-label">🗑️ Supprimer l'image actuelle (repasse à l'image par défaut)</span>
+  </label>
+  {% endif %}
+
+  <label for="image">Remplacer l'image</label>
+  <input type="file" id="image" name="image" accept="image/*">
+
+  <button type="submit">Enregistrer les modifications</button>
+
+</form>
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<div class="produits-topbar">
+  <h1>Produits</h1>
+  <div class="produits-topbar-droite">
+    <span class="produits-compteur">{{ produits|length }} résultat{% if produits|length != 1 %}s{% endif %}</span>
+    <a href="{{ url_for('main.compte') }}" class="icone-ronde" title="Compte">⚙️</a>
+    <a href="{{ url_for('main.liste_categories') }}" class="icone-ronde" title="Catégories">📋</a>
+    <a href="{{ url_for('main.panier') }}" class="icone-ronde" title="Panier">🛒</a>
+  </div>
+</div>
+
+<form method="GET" class="produits-filtres" id="form-filtres">
+
+  <select name="categorie" id="select-sous-categorie" onchange="document.getElementById('form-filtres').submit()">
+    <option value="">Toutes catégories</option>
+    {% for cat in categories %}
+    <option value="{{ cat.nom }}" {% if cat.nom == categorie_filtre %}selected{% endif %}>{{ cat.nom }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="categorie_principale" id="select-categorie-principale" onchange="document.getElementById('select-sous-categorie').value=''; document.getElementById('form-filtres').submit()">
+    <option value="">📁 Catégories</option>
+    {% for principale in categories_principales %}
+    <option value="{{ principale.id }}" {% if categorie_principale_filtre|string == principale.id|string %}selected{% endif %}>{{ principale.nom }}</option>
+    {% endfor %}
+  </select>
+
+  <input
+    type="text"
+    name="q"
+    value="{{ recherche }}"
+    placeholder="🔍 Rechercher un produit..."
+    class="produits-recherche"
+    onkeyup="if(event.key==='Enter'){document.getElementById('form-filtres').submit();}"
+  >
+
+</form>
+
+<div class="produits">
+  {% for produit in produits %}
+  <div class="card produit-card">
+
+    <div class="produit-image-wrapper">
+      <span class="badge-meetup">📍 MEET-UP</span>
+      {% if produit.image %}
+      <img src="{{ url_for('static', filename='images/' + produit.image) }}" alt="{{ produit.nom }}">
+      {% endif %}
+    </div>
+
+    <h2>{{ produit.nom }}</h2>
+    <p class="produit-description">{{ produit.description }}</p>
+
+    {% if produit.variantes %}
+    <select class="produit-variante-select" data-cible="prix-{{ produit.id }}">
+      {% for v in produit.variantes %}
+      <option value="{{ v.id }}" data-prix="{{ v.prix }}">{{ v.poids }}</option>
+      {% endfor %}
+    </select>
+
+    <div class="produit-prix" id="prix-{{ produit.id }}">
+      {{ "%.2f"|format(produit.variantes[0].prix) }} €
+    </div>
+    {% endif %}
+
+    <a href="{{ url_for('main.detail_produit', id=produit.id) }}">
+      <button class="btn-voir-produit">VOIR LE PRODUIT</button>
+    </a>
+
+  </div>
+  {% else %}
+  <div class="produits-vide">
+    <p>Aucun produit trouvé</p>
+    <p class="admin-hint">Essayez de modifier vos filtres</p>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+document.querySelectorAll('.produit-variante-select').forEach(function (select) {
+  select.addEventListener('change', function () {
+    const cible = document.getElementById(select.dataset.cible);
+    const prix = select.options[select.selectedIndex].dataset.prix;
+    cible.textContent = parseFloat(prix).toFixed(2) + " €";
+  });
+});
+</script>
+
+{% endblock %}

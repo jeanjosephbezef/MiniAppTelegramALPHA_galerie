@@ -1,0 +1,48 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Produits{% endblock %}
+
+{% block content %}
+
+<h1>Gestion des produits</h1>
+
+<a href="{{ url_for('main.nouveau_produit') }}">
+  <button type="button">➕ Ajouter un produit</button>
+</a>
+
+<table class="admin-table">
+  <thead>
+    <tr>
+      <th>Photo</th>
+      <th>Nom</th>
+      <th>Prix</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for produit in produits %}
+    <tr>
+      <td>
+        {% if produit.image %}
+        <img src="{{ url_for('static', filename='images/' + produit.image) }}" alt="{{ produit.nom }}" class="admin-thumb">
+        {% else %}
+        —
+        {% endif %}
+      </td>
+      <td>{{ produit.nom }}</td>
+      <td>{{ "%.2f"|format(produit.prix or 0) }} €</td>
+      <td>
+        <a href="{{ url_for('main.modifier_produit', id=produit.id) }}">✏️</a>
+        <a href="{{ url_for('main.supprimer_produit', id=produit.id) }}"
+           onclick="return confirm('Supprimer ce produit ?');">🗑️</a>
+      </td>
+    </tr>
+    {% else %}
+    <tr>
+      <td colspan="4">Aucun produit pour le moment.</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

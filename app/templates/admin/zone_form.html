@@ -1,0 +1,48 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ "Modifier" if zone else "Nouvelle" }} zone de livraison{% endblock %}
+
+{% block content %}
+<h1>{{ "Modifier" if zone else "Nouvelle" }} zone de livraison</h1>
+
+<form
+    method="POST"
+    action="{{ url_for('main.modifier_zone_livraison', id=zone.id) if zone else url_for('main.nouvelle_zone_livraison') }}"
+    class="admin-form"
+>
+    <label for="distance_min">Distance minimum (km)</label>
+    <input
+        type="number"
+        id="distance_min"
+        name="distance_min"
+        step="0.1"
+        min="0"
+        value="{{ zone.distance_min if zone else '' }}"
+        required
+    >
+
+    <label for="distance_max">Distance maximum (km)</label>
+    <input
+        type="number"
+        id="distance_max"
+        name="distance_max"
+        step="0.1"
+        min="0"
+        value="{{ zone.distance_max if zone else '' }}"
+        required
+    >
+
+    <label for="prix">Frais de livraison (€)</label>
+    <input
+        type="number"
+        id="prix"
+        name="prix"
+        step="0.01"
+        min="0"
+        value="{{ zone.prix if zone else '' }}"
+        required
+    >
+
+    <button type="submit">{{ "Enregistrer" if zone else "Créer la zone" }}</button>
+</form>
+{% endblock %}

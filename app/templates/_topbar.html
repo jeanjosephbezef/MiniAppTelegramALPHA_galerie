@@ -1,0 +1,11 @@
+{% macro topbar(titre) %}
+<div class="produits-topbar">
+  <h1>{{ titre }}</h1>
+  <div class="produits-topbar-droite">
+    <a href="javascript:history.back()" class="icone-ronde" title="Retour">⬅️</a>
+    <a href="{{ url_for('main.liste_produits') }}" class="icone-ronde" title="Produits">📋</a>
+    <a href="{{ url_for('main.panier') }}" class="icone-ronde" title="Panier">🛒</a>
+    <a href="{{ url_for('main.compte') }}" class="icone-ronde" title="Compte">⚙️</a>
+  </div>
+</div>
+{% endmacro %}
