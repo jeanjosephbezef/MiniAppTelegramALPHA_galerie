@@ -455,7 +455,10 @@ def main():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, dispatch_texte))
 
     print("Bot démarré, en attente de messages...")
-    app.run_polling()
+    # stop_signals=None : nécessaire pour pouvoir lancer le bot depuis un
+    # thread secondaire (voir start.py) — la gestion des signaux système
+    # (Ctrl+C) ne fonctionne que dans le thread principal.
+    app.run_polling(stop_signals=None)
 
 
 if __name__ == "__main__":
