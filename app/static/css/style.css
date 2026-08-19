@@ -13,7 +13,7 @@
 * {
     box-sizing:border-box;
     font-family:'Inter', Arial, sans-serif;
-    color:#f0f0f0; /* couleur de texte par dÃ©faut, lisible sur fond sombre */
+    color:#f0f0f0; /* couleur de texte par défaut, lisible sur fond sombre */
 }
 
 body {
@@ -21,7 +21,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed; /* le fond reste visible et stable derriÃ¨re chaque section, mÃªme en scrollant */
+    background-attachment: fixed; /* le fond reste visible et stable derrière chaque section, même en scrollant */
 }
 
 body {
@@ -137,7 +137,7 @@ font-weight:bold;
 
 cursor:pointer;
 
-color:#111; /* texte foncÃ© sur bouton vert clair, pour rester lisible */
+color:#111; /* texte foncé sur bouton vert clair, pour rester lisible */
 
 }
 
@@ -540,7 +540,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
     gap: 14px;
 }
 
-/* admin-form rÃ©utilisÃ© cÃ´tÃ© client pour checkout : garde une couleur lisible */
+/* admin-form réutilisé côté client pour checkout : garde une couleur lisible */
 .admin-form label {
     color: #dcdcdc;
 }
@@ -581,7 +581,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
 }
 
 /* ---------------------------------------------------------
-   SÃ©lecteur de variantes : cases cliquables plutÃ´t que radios
+   Sélecteur de variantes : cases cliquables plutôt que radios
    --------------------------------------------------------- */
 
 .variantes-choix {
@@ -624,11 +624,11 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
 }
 
 /* ---------------------------------------------------------
-   Dock de catÃ©gories (barre fixe faÃ§on appli mobile)
+   Dock de catégories (barre fixe façon appli mobile)
    --------------------------------------------------------- */
 
 body.has-dock {
-    /* Ã©vite que le contenu de bas de page se retrouve cachÃ© derriÃ¨re
+    /* évite que le contenu de bas de page se retrouve caché derrière
        le dock, qui est en position fixed */
     padding-bottom: 90px;
 }
@@ -758,7 +758,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   Galerie de mÃ©dias dans le formulaire admin produit
+   Galerie de médias dans le formulaire admin produit
    --------------------------------------------------------- */
 
 .galerie-admin-liste {
@@ -936,7 +936,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   Accueil : bandeau d'annonce, catÃ©gories, nouveautÃ©s scroll
+   Accueil : bandeau d'annonce, catégories, nouveautés scroll
    --------------------------------------------------------- */
 
 .bandeau-annonce {
@@ -1041,7 +1041,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   Fiche produit : header custom + carrousel mÃ©dias
+   Fiche produit : header custom + carrousel médias
    --------------------------------------------------------- */
 
 .produit-header {
@@ -1181,7 +1181,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   SÃ©lecteur de type (variÃ©tÃ©s nommÃ©es)
+   Sélecteur de type (variétés nommées)
    --------------------------------------------------------- */
 
 .types-choix {

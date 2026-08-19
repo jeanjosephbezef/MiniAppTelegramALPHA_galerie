@@ -40,7 +40,7 @@
 {% if apparence and apparence.dock_categories_actif and categories_dock %}
 <nav class="category-dock">
     {% for cat in categories_dock %}
-    
+    <a
         href="{{ url_for('main.categorie', nom=cat.nom) }}"
         class="dock-item{% if request.view_args and request.view_args.get('nom') == cat.nom %} active{% endif %}"
     >
