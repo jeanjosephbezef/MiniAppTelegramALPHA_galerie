@@ -28,7 +28,21 @@ import hmac
 # accès aux modèles Flask/SQLAlchemy pour lire et corriger les commandes,
 # et au module de sécurité partagé avec le site (mêmes logs, mêmes alertes)
 from app import create_app, db as flask_db, security
-from app.models import Commande, ZoneLivraison
+from app.models import Commande, ZoneLivraison, Parametre
+
+MESSAGE_BIENVENUE_DEFAUT = (
+    "Bienvenue 🌿\n\nAppuyez sur le bouton ci-dessous pour ouvrir la boutique."
+)
+
+
+def _message_bienvenue() -> str:
+    """Retourne le message de bienvenue configuré depuis Admin > Apparence,
+    ou le message par défaut si rien n'a été renseigné."""
+    with flask_app.app_context():
+        parametre = Parametre.query.first()
+        if parametre and parametre.message_bienvenue:
+            return parametre.message_bienvenue
+    return MESSAGE_BIENVENUE_DEFAUT
 
 flask_app = create_app()
 
@@ -118,7 +132,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ])
 
     msg = await update.message.reply_text(
-        "Bienvenue 🌿\n\nAppuyez sur le bouton ci-dessous pour ouvrir la boutique.",
+        _message_bienvenue(),
         reply_markup=clavier
     )
     _track(context, msg.message_id)

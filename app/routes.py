@@ -1069,6 +1069,10 @@ def admin_apparence():
 
             flash("Identité de la boutique mise à jour.")
 
+        elif action == "bienvenue":
+            parametre.message_bienvenue = request.form.get("message_bienvenue", "").strip() or None
+            flash("Message de bienvenue mis à jour.")
+
         elif action == "couleur":
             couleur = request.form.get("couleur_accent", "").strip()
             if not couleur:

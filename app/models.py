@@ -184,3 +184,7 @@ class Parametre(db.Model):
     # boutons, liens et surlignages sur toute l'appli (boutique + admin).
     # Vide -> couleur bleu glace par défaut définie dans le CSS.
     couleur_accent = db.Column(db.String(7))
+
+    # Message envoyé par le bot Telegram quand un client fait /start.
+    # Vide -> on retombe sur le message par défaut codé dans bot.py.
+    message_bienvenue = db.Column(db.String(500))

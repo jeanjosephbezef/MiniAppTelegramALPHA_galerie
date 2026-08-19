@@ -133,6 +133,25 @@
   </section>
 
   <section class="apparence-section">
+    <h2 class="apparence-soustitre">Message de bienvenue (/start)</h2>
+    <p class="apparence-note">
+      Texte envoyé par le bot Telegram quand un client démarre la conversation
+      avec /start. Laisse vide pour garder le message par défaut.
+    </p>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="bienvenue">
+
+      <label for="message_bienvenue">Message</label>
+      <textarea id="message_bienvenue" name="message_bienvenue" rows="3"
+                placeholder="ex : Bienvenue 🌿&#10;&#10;Appuyez sur le bouton ci-dessous pour ouvrir la boutique.">{{ parametre.message_bienvenue or '' }}</textarea>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
     <h2 class="apparence-soustitre">Bandeau d'annonce</h2>
     <p class="apparence-note">
       Texte défilant affiché en haut de l'accueil. Laisse vide pour ne rien afficher.
