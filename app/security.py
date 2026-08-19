@@ -40,6 +40,65 @@ def sauvegarder_ids_bloques(ids):
         print(f"Impossible d'écrire le fichier des IDs bloqués : {e}")
 
 
+# ==========================
+# BLOCAGE AUTOMATIQUE APRÈS ÉCHECS RÉPÉTÉS
+# ==========================
+
+MAX_ECHECS = 5
+FENETRE_ECHECS_SECONDES = 15 * 60  # 15 minutes
+DUREE_BLOCAGE_SECONDES = 30 * 60   # 30 minutes
+
+# En mémoire (process unique sur ce projet — voir start.py) :
+# clé = identifiant (IP ou "tg:<user_id>"), valeur = liste d'horodatages d'échecs
+_echecs_par_cle = {}
+_blocages_temporaires = {}  # clé -> horodatage de fin de blocage
+
+
+def _purger_echecs_anciens(cle):
+    maintenant = time.time()
+    _echecs_par_cle[cle] = [
+        t for t in _echecs_par_cle.get(cle, [])
+        if maintenant - t < FENETRE_ECHECS_SECONDES
+    ]
+
+
+def est_temporairement_bloque(cle):
+    """True si cette IP/cet ID est actuellement bloqué suite à trop
+    d'échecs récents. Débloque automatiquement une fois le délai passé."""
+    fin_blocage = _blocages_temporaires.get(cle)
+    if not fin_blocage:
+        return False
+    if time.time() >= fin_blocage:
+        del _blocages_temporaires[cle]
+        return False
+    return True
+
+
+def temps_restant_blocage(cle):
+    fin_blocage = _blocages_temporaires.get(cle, 0)
+    return max(0, int(fin_blocage - time.time()))
+
+
+def enregistrer_echec(cle):
+    """À appeler après un mot de passe incorrect. Bloque
+    automatiquement la clé (IP ou ID Telegram) après MAX_ECHECS
+    échecs dans la fenêtre de temps définie."""
+    _purger_echecs_anciens(cle)
+    _echecs_par_cle.setdefault(cle, []).append(time.time())
+
+    if len(_echecs_par_cle[cle]) >= MAX_ECHECS:
+        _blocages_temporaires[cle] = time.time() + DUREE_BLOCAGE_SECONDES
+        _echecs_par_cle[cle] = []
+        return True  # vient d'être bloqué
+
+    return False
+
+
+def reinitialiser_echecs(cle):
+    """À appeler après une connexion réussie."""
+    _echecs_par_cle.pop(cle, None)
+
+
 def verifier_init_data(init_data, max_age_secondes=86400):
     """Vérifie la signature des données Telegram WebApp (initData).
     Retourne le dict utilisateur si la signature est valide et les
@@ -77,18 +136,6 @@ def verifier_init_data(init_data, max_age_secondes=86400):
         return json.loads(user_json)
     except (ValueError, TypeError):
         return None
-
-
-def obtenir_id_telegram_verifie(init_data):
-    """Retourne l'ID Telegram numérique du client, extrait et vérifié à
-    partir du initData envoyé par le Mini App (signature contrôlée par
-    verifier_init_data). Contrairement au champ texte optionnel
-    'identifiant Telegram' du formulaire de commande, cette valeur est
-    fiable même si le client n'a rien saisi lui-même.
-    Retourne None si initData est absent, invalide ou expiré."""
-
-    user = verifier_init_data(init_data)
-    return user.get("id") if user else None
 
 
 def localiser_ip(ip):
@@ -136,26 +183,14 @@ def journaliser_tentative(user, autorise, ip, user_agent=None, geo=None):
         print(f"Impossible d'écrire dans le log de sécurité : {e}")
 
 
-def envoyer_alerte_telegram(texte, bouton_texte=None, bouton_url=None):
-    """Envoie le texte à tous les admins. Si bouton_texte et bouton_url
-    sont fournis, ajoute un bouton inline sous le message (ex : bouton
-    'Répondre' qui ouvre directement la conversation avec le client)."""
-
+def envoyer_alerte_telegram(texte):
     if not BOT_TOKEN or not ADMIN_IDS:
         return
-
-    payload = {"text": texte}
-
-    if bouton_texte and bouton_url:
-        payload["reply_markup"] = json.dumps({
-            "inline_keyboard": [[{"text": bouton_texte, "url": bouton_url}]]
-        })
-
     for admin_id in ADMIN_IDS:
         try:
             requests.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                data={"chat_id": admin_id, **payload},
+                data={"chat_id": admin_id, "text": texte},
                 timeout=5,
             )
         except requests.RequestException as e:
@@ -179,7 +214,7 @@ def _construire_texte_alerte(user, ip, user_agent, geo):
 
     lignes.append(f"🕐 {time.strftime('%d/%m/%Y — %H:%M')}")
 
-    ligne_ip = f"📍 IP : {ip}" if ip else "📍 IP : non disponible (via bot Telegram)"
+    ligne_ip = f"📍 IP : {ip}"
     if geo:
         details_geo = ", ".join(v for v in [geo.get("ville"), geo.get("pays")] if v)
         if details_geo:
@@ -192,54 +227,6 @@ def _construire_texte_alerte(user, ip, user_agent, geo):
     lignes.append("🔐 Accès : REFUSÉ")
 
     return "\n".join(lignes)
-
-
-def signaler_tentative_web(ip, user_agent, autorise):
-    """Journalise + alerte (si refusé) une tentative de connexion à
-    /admin/login (mot de passe web). Pas de données Telegram ici,
-    seulement IP/navigateur — on géolocalise et on alerte comme pour
-    le contrôle d'accès de la Mini App."""
-
-    geo = None
-    if not autorise:
-        geo = localiser_ip(ip)
-
-    journaliser_tentative(None, autorise, ip, user_agent, geo)
-
-    if not autorise:
-        envoyer_alerte_telegram(_construire_texte_alerte(None, ip, user_agent, geo))
-
-
-def _utilisateur_depuis_telegram_user(u):
-    """Construit un dict compatible avec journaliser_tentative/
-    _construire_texte_alerte à partir d'un objet telegram.User (bot.py)."""
-
-    if not u:
-        return None
-
-    return {
-        "id": u.id,
-        "username": u.username,
-        "first_name": u.first_name,
-        "last_name": u.last_name,
-        "language_code": u.language_code,
-        "is_premium": getattr(u, "is_premium", None),
-    }
-
-
-def signaler_tentative_bot(telegram_user, autorise):
-    """Journalise + alerte (si refusé) une tentative de connexion admin
-    depuis le bot Telegram (mot de passe bot incorrect). Pas d'IP
-    disponible côté bot, mais l'identité Telegram est connue."""
-
-    user = _utilisateur_depuis_telegram_user(telegram_user)
-
-    journaliser_tentative(user, autorise, ip=None, user_agent="Bot Telegram")
-
-    if not autorise:
-        envoyer_alerte_telegram(
-            _construire_texte_alerte(user, None, "Bot Telegram", None)
-        )
 
 
 def controle_acces_admin(init_data, ip, user_agent=None):

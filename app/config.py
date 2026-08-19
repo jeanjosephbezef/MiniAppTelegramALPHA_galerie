@@ -1,4 +1,5 @@
 import os
+from datetime import timedelta
 
 
 BASE_DIR = os.path.abspath(
@@ -21,3 +22,15 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     BASE_DIR = BASE_DIR
+
+    # --- Sécurité de session admin ---
+    # HTTPONLY empêche le JS de lire le cookie de session (protection XSS)
+    SESSION_COOKIE_HTTPONLY = True
+    # SECURE : le cookie n'est envoyé qu'en HTTPS. Mets False en local
+    # (http://127.0.0.1) via la variable d'env, True en production (Render).
+    SESSION_COOKIE_SECURE = os.environ.get("FLASK_ENV") != "development"
+    # SAMESITE=Lax bloque l'usage du cookie depuis un autre site
+    SESSION_COOKIE_SAMESITE = "Lax"
+    # Déconnexion automatique après 30 minutes d'inactivité
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
+    SESSION_REFRESH_EACH_REQUEST = True

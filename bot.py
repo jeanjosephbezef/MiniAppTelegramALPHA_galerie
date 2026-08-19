@@ -23,6 +23,7 @@ from telegram.ext import (
 
 import json
 import ast
+import hmac
 
 # accès aux modèles Flask/SQLAlchemy pour lire et corriger les commandes,
 # et au module de sécurité partagé avec le site (mêmes logs, mêmes alertes)
@@ -129,7 +130,25 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
         return False
 
     context.user_data["awaiting_admin_password"] = False
-    password_ok = update.message.text.strip() == BOT_ADMIN_PASSWORD
+
+    cle_blocage = f"tg:{update.effective_user.id}"
+
+    if security.est_temporairement_bloque(cle_blocage):
+        try:
+            await context.bot.delete_message(
+                chat_id=update.effective_chat.id,
+                message_id=update.message.message_id,
+            )
+        except Exception:
+            pass
+        minutes = security.temps_restant_blocage(cle_blocage) // 60 + 1
+        msg = await update.message.reply_text(
+            f"⛔ Trop de tentatives échouées. Réessaie dans environ {minutes} min."
+        )
+        _track(context, msg.message_id)
+        return True
+
+    password_ok = hmac.compare_digest(update.message.text.strip(), BOT_ADMIN_PASSWORD)
 
     # supprime le message contenant le mot de passe pour qu'il n'apparaisse pas dans le chat
     try:
@@ -141,6 +160,7 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
         print(f"Impossible de supprimer le message du mot de passe : {e}")
 
     if password_ok:
+        security.reinitialiser_echecs(cle_blocage)
         clavier = InlineKeyboardMarkup([
             [InlineKeyboardButton(
                 text="🛍️ Ouvrir la boutique",
@@ -157,10 +177,12 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
         )
         _track(context, msg.message_id)
     else:
+        vient_de_bloquer = security.enregistrer_echec(cle_blocage)
         _notifier_intrusion(update, autorise=False)
-        msg = await update.message.reply_text(
-            "❌ Mot de passe incorrect. Retape /start pour réessayer."
-        )
+        texte = "❌ Mot de passe incorrect. Retape /start pour réessayer."
+        if vient_de_bloquer:
+            texte = "⛔ Trop de tentatives échouées. Accès bloqué temporairement."
+        msg = await update.message.reply_text(texte)
         _track(context, msg.message_id)
 
     return True

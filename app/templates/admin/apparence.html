@@ -7,86 +7,85 @@
 
 <div class="apparence-grid">
 
-<section class="apparence-section">
-<h2 class="apparence-soustitre">Fond d'écran</h2>
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Fond d'écran</h2>
 
     {% if parametre.fond_ecran %}
-<div class="fond-apercu">
-<img src="{{ url_for('static', filename='images/' + parametre.fond_ecran) }}" alt="Fond d'écran actuel">
-</div>
+    <div class="fond-apercu">
+      <img src="{{ url_for('static', filename='images/' + parametre.fond_ecran) }}" alt="Fond d'écran actuel">
+    </div>
     {% else %}
-<p class="apparence-note">Aucun fond personnalisé : l'image par défaut du thème est utilisée.</p>
+    <p class="apparence-note">Aucun fond personnalisé : l'image par défaut du thème est utilisée.</p>
     {% endif %}
 
-<form method="POST" enctype="multipart/form-data" class="admin-form">
-<input type="hidden" name="action" value="fond">
+    <form method="POST" enctype="multipart/form-data" class="admin-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="fond">
 
-<label for="fond_ecran">Nouvelle image de fond</label>
-<input type="file" id="fond_ecran" name="fond_ecran" accept="image/*" required>
+      <label for="fond_ecran">Nouvelle image de fond</label>
+      <input type="file" id="fond_ecran" name="fond_ecran" accept="image/*" required>
 
-<button type="submit">Appliquer ce fond d'écran</button>
-</form>
+      <button type="submit">Appliquer ce fond d'écran</button>
+    </form>
 
     {% if parametre.fond_ecran %}
-<form method="POST" class="admin-form apparence-reset-form">
-<input type="hidden" name="action" value="reset_fond">
-<button type="submit" class="btn-secondaire">Revenir au fond par défaut</button>
-</form>
+    <form method="POST" class="admin-form apparence-reset-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="reset_fond">
+      <button type="submit" class="btn-secondaire">Revenir au fond par défaut</button>
+    </form>
     {% endif %}
-</section>
+  </section>
 
-<section class="apparence-section">
-<h2 class="apparence-soustitre">Dock catégories</h2>
-<p class="apparence-note">
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Dock catégories</h2>
+    <p class="apparence-note">
       Affiche une barre avec les catégories en bas de l'appli, sur toutes les pages,
       pour un accès rapide façon application mobile.
-</p>
+    </p>
 
-<form method="POST" class="admin-form">
-<input type="hidden" name="action" value="dock">
+    <form method="POST" class="admin-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="dock">
 
-<label class="apparence-toggle">
-<input
-type="checkbox"
-name="dock_categories_actif"
-{% if parametre.dock_categories_actif %}checked{% endif %}
->
+      <label class="apparence-toggle">
+        <input
+          type="checkbox"
+          name="dock_categories_actif"
+          {% if parametre.dock_categories_actif %}checked{% endif %}
+        >
         Afficher le dock des catégories dans l'appli
-</label>
+      </label>
 
-<button type="submit">Enregistrer</button>
-</form>
+      <button type="submit">Enregistrer</button>
+    </form>
 
     {% if not categories_dock %}
-<p class="apparence-note">
+    <p class="apparence-note">
       Aucune catégorie créée pour le moment — le dock restera vide tant qu'aucune
-<a href="{{ url_for('main.nouvelle_categorie') }}">catégorie</a> n'existe.
-</p>
+      <a href="{{ url_for('main.nouvelle_categorie') }}">catégorie</a> n'existe.
+    </p>
     {% endif %}
-</section>
+  </section>
 
-<section class="apparence-section">
-<h2 class="apparence-soustitre">Annonce</h2>
-<p class="apparence-note">
-      Affiche un bandeau d'annonce en haut de l'accueil de l'appli.
-      Laisse le champ vide pour ne rien afficher.
-</p>
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Bandeau d'annonce</h2>
+    <p class="apparence-note">
+      Texte défilant affiché en haut de l'accueil. Laisse vide pour ne rien afficher.
+    </p>
 
-<form method="POST" class="admin-form">
-<input type="hidden" name="action" value="annonce">
+    <form method="POST" class="admin-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="annonce">
 
-<label for="annonce_texte">Texte de l'annonce</label>
-<input
-type="text"
-id="annonce_texte"
-name="annonce_texte"
-maxlength="255"
-value="{{ parametre.annonce_texte or '' }}"
-placeholder="Ex : Maintenance prévue le 20 août">
+      <label for="annonce_texte">Texte du bandeau</label>
+      <input type="text" id="annonce_texte" name="annonce_texte"
+             value="{{ parametre.annonce_texte or '' }}"
+             placeholder="ex : Bonne journée l'équipe 🔥 On est disponible...">
 
-<button type="submit">Enregistrer</button>
-</form>
-</section>
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
 
 </div>
 

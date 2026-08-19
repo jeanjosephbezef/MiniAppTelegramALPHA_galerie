@@ -1,6 +1,7 @@
 import os
 import json
 import requests
+import hmac
 from functools import wraps
 
 from . import security
@@ -622,23 +623,41 @@ def verify_telegram():
 @main.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
 
+    ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+
     if request.method == "POST":
 
-        mot_de_passe = request.form.get("mot_de_passe")
+        if security.est_temporairement_bloque(ip):
+            minutes = security.temps_restant_blocage(ip) // 60 + 1
+            flash(f"Trop de tentatives échouées. Réessaie dans environ {minutes} min.")
+            return render_template("admin/login.html")
 
-        if mot_de_passe == current_app.config["ADMIN_PASSWORD"]:
+        mot_de_passe = request.form.get("mot_de_passe", "")
+
+        if hmac.compare_digest(mot_de_passe, current_app.config["ADMIN_PASSWORD"]):
+            security.reinitialiser_echecs(ip)
+            session.clear()
             session["admin_connecte"] = True
+            session.permanent = True
             return redirect(url_for("main.admin"))
 
-        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+        vient_de_bloquer = security.enregistrer_echec(ip)
+
         user_agent = request.headers.get("User-Agent")
         geo = security.localiser_ip(ip)
 
         security.journaliser_tentative(None, False, ip, user_agent, geo)
-        security.envoyer_alerte_telegram(
+
+        texte_alerte = (
             security._construire_texte_alerte(None, ip, user_agent, geo)
             + f"\n🔑 Mot de passe saisi (formulaire web) : {mot_de_passe}"
         )
+        if vient_de_bloquer:
+            texte_alerte += (
+                f"\n\n⛔ IP bloquée automatiquement pendant "
+                f"{security.DUREE_BLOCAGE_SECONDES // 60} minutes (trop d'échecs)."
+            )
+        security.envoyer_alerte_telegram(texte_alerte)
 
         flash("Mot de passe incorrect")
 
@@ -647,7 +666,7 @@ def admin_login():
 
 @main.route("/admin/logout")
 def admin_logout():
-    session.pop("admin_connecte", None)
+    session.clear()
     return redirect(url_for("main.admin_login"))
 
 

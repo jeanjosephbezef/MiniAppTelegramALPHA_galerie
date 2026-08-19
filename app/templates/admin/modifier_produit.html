@@ -11,6 +11,7 @@
 {% set thc_taux_actif = thc_actif and produit.thc != 'Oui' %}
 
 <form method="POST" enctype="multipart/form-data" class="admin-form">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
   <label for="nom">Nom</label>
   <input type="text" id="nom" name="nom" value="{{ produit.nom }}" required>
