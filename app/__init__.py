@@ -83,3 +83,10 @@ def _migrer_colonnes_manquantes():
             connexion.execute(
                 text("ALTER TABLE parametre ADD COLUMN couleur_accent VARCHAR(7)")
             )
+        if "message_bienvenue" not in colonnes:
+            connexion.execute(
+                text(
+                    "ALTER TABLE parametre ADD COLUMN message_bienvenue "
+                    "VARCHAR(500)"
+                )
+            )
