@@ -19,7 +19,7 @@ from flask import (
 
 from werkzeug.utils import secure_filename
 
-from . import db
+from . import db, csrf 
 
 from .models import (
     Produit,
@@ -611,6 +611,7 @@ def compte():
 # ==========================
 
 @main.route("/admin/verify-telegram", methods=["POST"])
+@csrf.exempt
 def verify_telegram():
     init_data = request.get_json(silent=True) or {}
     autorise, _ = security.controle_acces_admin(
