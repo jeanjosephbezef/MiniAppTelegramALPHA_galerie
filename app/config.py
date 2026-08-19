@@ -15,7 +15,16 @@ class Config:
     # Mot de passe pour accéder à l'espace /admin
     ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "jatrli256")
 
-    SQLALCHEMY_DATABASE_URI = (
+    # --- Base de données ---
+    # Sur Render, DATABASE_URL pointe vers la base PostgreSQL persistante.
+    # En local (pas de DATABASE_URL dans le .env), on retombe sur SQLite.
+    _database_url = os.environ.get("DATABASE_URL", "")
+
+    if _database_url.startswith("postgres://"):
+        # Render fournit "postgres://", SQLAlchemy exige "postgresql://"
+        _database_url = _database_url.replace("postgres://", "postgresql://", 1)
+
+    SQLALCHEMY_DATABASE_URI = _database_url or (
         "sqlite:///" + os.path.join(BASE_DIR, "database", "app.db")
     )
 
