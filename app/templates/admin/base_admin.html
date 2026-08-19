@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}Admin{% endblock %} — Administration</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}?v=4">
+  {% if apparence and apparence.couleur_accent %}
+  <style>:root { --accent-color: {{ apparence.couleur_accent }}; }</style>
+  {% endif %}
 </head>
 <body class="admin-body">
 

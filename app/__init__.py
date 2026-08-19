@@ -67,3 +67,19 @@ def _migrer_colonnes_manquantes():
                     "BOOLEAN DEFAULT 1"
                 )
             )
+        if "annonce_texte" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN annonce_texte VARCHAR(255)")
+            )
+        if "nom_boutique" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN nom_boutique VARCHAR(100)")
+            )
+        if "logo" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN logo VARCHAR(255)")
+            )
+        if "couleur_accent" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN couleur_accent VARCHAR(7)")
+            )

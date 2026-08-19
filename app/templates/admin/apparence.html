@@ -8,6 +8,70 @@
 <div class="apparence-grid">
 
   <section class="apparence-section">
+    <h2 class="apparence-soustitre">Identité de la boutique</h2>
+    <p class="apparence-note">
+      Nom, logo et couleur d'accent utilisés sur toute l'appli (boutique et
+      espace admin), sans toucher au code.
+    </p>
+
+    {% if parametre.logo %}
+    <div class="fond-apercu">
+      <img src="{{ url_for('static', filename='images/' + parametre.logo) }}" alt="Logo actuel">
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="identite">
+
+      <label for="nom_boutique">Nom de la boutique</label>
+      <input type="text" id="nom_boutique" name="nom_boutique"
+             value="{{ parametre.nom_boutique or '' }}"
+             placeholder="ex : Le Filon 74">
+
+      <label for="logo">Logo (facultatif)</label>
+      <input type="file" id="logo" name="logo" accept="image/*">
+
+      {% if parametre.logo %}
+      <label class="apparence-toggle">
+        <input type="checkbox" name="supprimer_logo">
+        Retirer le logo actuel
+      </label>
+      {% endif %}
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Couleur d'accent</h2>
+    <p class="apparence-note">
+      Couleur utilisée pour les boutons, liens et surlignages, sur la boutique
+      et dans l'espace admin.
+    </p>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="couleur">
+
+      <label for="couleur_accent">Couleur</label>
+      <input type="color" id="couleur_accent" name="couleur_accent"
+             value="{{ parametre.couleur_accent or '#4fc3f7' }}">
+
+      <button type="submit">Appliquer</button>
+    </form>
+
+    {% if parametre.couleur_accent %}
+    <form method="POST" class="admin-form apparence-reset-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="couleur">
+      <input type="hidden" name="couleur_accent" value="">
+      <button type="submit" class="btn-secondaire">Revenir à la couleur par défaut</button>
+    </form>
+    {% endif %}
+  </section>
+
+  <section class="apparence-section">
     <h2 class="apparence-soustitre">Fond d'écran</h2>
 
     {% if parametre.fond_ecran %}

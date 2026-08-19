@@ -26,10 +26,11 @@
     <h2>Dernières commandes</h2>
     <a href="{{ url_for('main.admin_commandes') }}">Voir toutes les commandes →</a>
     {% if dernieres_commandes %}
-    <a href="{{ url_for('main.vider_commandes') }}"
-       onclick="return confirm('Effacer tout l\'historique des commandes ? Cette action est irréversible.');">
-        🗑️ Effacer l'historique
-    </a>
+    <form method="POST" action="{{ url_for('main.vider_commandes') }}" class="admin-inline-form"
+          onsubmit="return confirm('Effacer tout l\'historique des commandes ? Cette action est irréversible.');">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="admin-lien-bouton">🗑️ Effacer l'historique</button>
+    </form>
     {% endif %}
 </div>
 

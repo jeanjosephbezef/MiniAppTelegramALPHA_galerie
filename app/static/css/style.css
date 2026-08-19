@@ -1,9 +1,19 @@
+:root {
+  --accent-color: #4fc3f7;
+}
+
+.footer-logo {
+  display: block;
+  max-height: 40px;
+  margin: 0 auto 8px;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600&display=swap');
 
 * {
     box-sizing:border-box;
     font-family:'Inter', Arial, sans-serif;
-    color:#f0f0f0; /* couleur de texte par défaut, lisible sur fond sombre */
+    color:#f0f0f0; /* couleur de texte par dÃ©faut, lisible sur fond sombre */
 }
 
 body {
@@ -11,7 +21,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-attachment: fixed; /* le fond reste visible et stable derrière chaque section, même en scrollant */
+    background-attachment: fixed; /* le fond reste visible et stable derriÃ¨re chaque section, mÃªme en scrollant */
 }
 
 body {
@@ -43,7 +53,7 @@ font-family:'Anton', sans-serif;
 letter-spacing: 1px;
 text-transform: uppercase;
 
-color:#4fc3f7;
+color:var(--accent-color);
 
 text-align:center;
 
@@ -79,7 +89,7 @@ text-decoration:none;
 
 nav a:hover {
 
-color:#4fc3f7;
+color:var(--accent-color);
 
 }
 
@@ -115,7 +125,7 @@ color:#f0f0f0;
 
 button {
 
-background:#4fc3f7;
+background:var(--accent-color);
 
 border:none;
 
@@ -127,7 +137,7 @@ font-weight:bold;
 
 cursor:pointer;
 
-color:#111; /* texte foncé sur bouton vert clair, pour rester lisible */
+color:#111; /* texte foncÃ© sur bouton vert clair, pour rester lisible */
 
 }
 
@@ -190,7 +200,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
     letter-spacing: 1px;
     text-transform: uppercase;
     
-    color:#4fc3f7;
+    color:var(--accent-color);
     
     text-shadow: 0 0 18px rgba(79,195,247,0.65), 0 2px 8px rgba(0,0,0,0.9);
     
@@ -272,7 +282,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
         
         .card h2 {
         
-        color:#4fc3f7;
+        color:var(--accent-color);
         
         text-shadow: 0 0 10px rgba(79,195,247,0.55), 0 2px 6px rgba(0,0,0,0.9);
         
@@ -330,7 +340,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
             
             .infos-produit h1 {
             
-            color:#4fc3f7;
+            color:var(--accent-color);
             
             font-size:35px;
             font-family:'Anton', sans-serif;
@@ -414,13 +424,13 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
             
                 transform:translateY(-5px);
             
-                box-shadow:0 0 20px #4fc3f7;
+                box-shadow:0 0 20px var(--accent-color);
             
             }
             
             .card-admin h2{
             
-                color:#4fc3f7;
+                color:var(--accent-color);
             
                 text-shadow: 0 0 10px rgba(79,195,247,0.55), 0 2px 6px rgba(0,0,0,0.9);
             
@@ -530,7 +540,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
     gap: 14px;
 }
 
-/* admin-form réutilisé côté client pour checkout : garde une couleur lisible */
+/* admin-form rÃ©utilisÃ© cÃ´tÃ© client pour checkout : garde une couleur lisible */
 .admin-form label {
     color: #dcdcdc;
 }
@@ -571,7 +581,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
 }
 
 /* ---------------------------------------------------------
-   Sélecteur de variantes : cases cliquables plutôt que radios
+   SÃ©lecteur de variantes : cases cliquables plutÃ´t que radios
    --------------------------------------------------------- */
 
 .variantes-choix {
@@ -607,18 +617,18 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
 }
 
 .variante-option:has(input:checked) {
-    border-color: #4fc3f7;
+    border-color: var(--accent-color);
     background: rgba(79, 195, 247, 0.12);
-    color: #4fc3f7;
+    color: var(--accent-color);
     font-weight: bold;
 }
 
 /* ---------------------------------------------------------
-   Dock de catégories (barre fixe façon appli mobile)
+   Dock de catÃ©gories (barre fixe faÃ§on appli mobile)
    --------------------------------------------------------- */
 
 body.has-dock {
-    /* évite que le contenu de bas de page se retrouve caché derrière
+    /* Ã©vite que le contenu de bas de page se retrouve cachÃ© derriÃ¨re
        le dock, qui est en position fixed */
     padding-bottom: 90px;
 }
@@ -690,12 +700,12 @@ body.has-dock {
 
 .dock-item:hover,
 .dock-item.active {
-    color: #4fc3f7;
+    color: var(--accent-color);
     background: rgba(79, 195, 247, 0.12);
 }
 
 .dock-item.active img {
-    border-color: #4fc3f7;
+    border-color: var(--accent-color);
 }
 
 /* ---------------------------------------------------------
@@ -732,7 +742,7 @@ body.has-dock {
 }
 
 .miniature.active {
-    border-color: #4fc3f7;
+    border-color: var(--accent-color);
 }
 
 .miniature-icone {
@@ -748,7 +758,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   Galerie de médias dans le formulaire admin produit
+   Galerie de mÃ©dias dans le formulaire admin produit
    --------------------------------------------------------- */
 
 .galerie-admin-liste {
@@ -807,7 +817,7 @@ body.has-dock {
 }
 
 .produits-compteur {
-    color: #4fc3f7;
+    color: var(--accent-color);
     font-weight: 600;
     font-size: 14px;
 }
@@ -870,7 +880,7 @@ body.has-dock {
     z-index: 2;
     background: rgba(79,195,247,0.18);
     border: 1px solid rgba(79,195,247,0.5);
-    color: #4fc3f7;
+    color: var(--accent-color);
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.3px;
@@ -896,7 +906,7 @@ body.has-dock {
     background: #101820;
     border: 1px solid #26313c;
     border-radius: 12px;
-    color: #4fc3f7;
+    color: var(--accent-color);
     font-weight: 600;
 }
 
@@ -910,8 +920,8 @@ body.has-dock {
 .btn-voir-produit {
     width: 100%;
     background: transparent;
-    border: 1.5px solid #4fc3f7;
-    color: #4fc3f7;
+    border: 1.5px solid var(--accent-color);
+    color: var(--accent-color);
     font-weight: 700;
     letter-spacing: 0.5px;
     padding: 12px;
@@ -926,7 +936,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   Accueil : bandeau d'annonce, catégories, nouveautés scroll
+   Accueil : bandeau d'annonce, catÃ©gories, nouveautÃ©s scroll
    --------------------------------------------------------- */
 
 .bandeau-annonce {
@@ -943,7 +953,7 @@ body.has-dock {
 
 .bandeau-icone {
     flex-shrink: 0;
-    color: #4fc3f7;
+    color: var(--accent-color);
     font-weight: 700;
     font-size: 13px;
     letter-spacing: 0.5px;
@@ -956,7 +966,7 @@ body.has-dock {
     gap: 60px;
     white-space: nowrap;
     animation: defilement 18s linear infinite;
-    color: #4fc3f7;
+    color: var(--accent-color);
     font-weight: 600;
     font-size: 14px;
 }
@@ -979,7 +989,7 @@ body.has-dock {
 }
 
 .section-header a {
-    color: #4fc3f7;
+    color: var(--accent-color);
     text-decoration: none;
     font-size: 14px;
     font-weight: 600;
@@ -1010,7 +1020,7 @@ body.has-dock {
 
 .categorie-tuile-icone {
     font-size: 22px;
-    color: #4fc3f7;
+    color: var(--accent-color);
 }
 
 .produits-scroll {
@@ -1031,7 +1041,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   Fiche produit : header custom + carrousel médias
+   Fiche produit : header custom + carrousel mÃ©dias
    --------------------------------------------------------- */
 
 .produit-header {
@@ -1051,7 +1061,7 @@ body.has-dock {
 
 .produit-header-panier {
     margin-left: auto;
-    color: #4fc3f7;
+    color: var(--accent-color);
 }
 
 .produit-header-titre {
@@ -1060,7 +1070,7 @@ body.has-dock {
     font-family: 'Anton', sans-serif;
     letter-spacing: 0.5px;
     text-transform: uppercase;
-    color: #4fc3f7;
+    color: var(--accent-color);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -1133,7 +1143,7 @@ body.has-dock {
 .carrousel-point.active {
     width: 20px;
     border-radius: 4px;
-    background: #4fc3f7;
+    background: var(--accent-color);
 }
 
 .produit-titre-prix {
@@ -1153,7 +1163,7 @@ body.has-dock {
     flex-shrink: 0;
     font-size: 22px;
     font-weight: 700;
-    color: #4fc3f7;
+    color: var(--accent-color);
 }
 
 .badge-meetup-inline {
@@ -1171,7 +1181,7 @@ body.has-dock {
 }
 
 /* ---------------------------------------------------------
-   Sélecteur de type (variétés nommées)
+   SÃ©lecteur de type (variÃ©tÃ©s nommÃ©es)
    --------------------------------------------------------- */
 
 .types-choix {
@@ -1213,8 +1223,8 @@ body.has-dock {
 }
 
 .type-option:has(input:checked) {
-    border-color: #4fc3f7;
+    border-color: var(--accent-color);
     background: rgba(79,195,247,0.12);
-    color: #4fc3f7;
+    color: var(--accent-color);
     font-weight: bold;
 }

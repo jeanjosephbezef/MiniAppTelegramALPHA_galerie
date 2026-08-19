@@ -448,15 +448,18 @@ def ajouter_panier(id):
     if quantite < 1:
         quantite = 1
 
-    if variante_id:
+    variante = None
+    if variante_id and variante_id.isdigit():
         variante = Variante.query.get(int(variante_id))
-        prix_unitaire = variante.prix if variante else produit.prix
-        libelle = f"{produit.nom} ({variante.poids})" if variante else produit.nom
+
+    if variante:
+        prix_unitaire = variante.prix
+        libelle = f"{produit.nom} ({variante.poids})"
     else:
         prix_unitaire = produit.prix
         libelle = produit.nom
 
-    if type_id:
+    if type_id and type_id.isdigit():
         type_produit = TypeProduit.query.get(int(type_id))
         if type_produit:
             libelle = f"{libelle} — {type_produit.nom}"
@@ -584,6 +587,7 @@ def commande():
         parametre=parametre,
         zones=zones
     )
+
 
 
 # ==========================
@@ -745,7 +749,7 @@ def message_client(id):
     return redirect(url_for("main.admin_commandes"))
 
 
-@main.route("/admin/commandes/vider")
+@main.route("/admin/commandes/vider", methods=["POST"])
 @admin_required
 def vider_commandes():
     Commande.query.delete()
@@ -1054,6 +1058,28 @@ def admin_apparence():
         elif action == "annonce":
             parametre.annonce_texte = request.form.get("annonce_texte", "").strip() or None
             flash("Bandeau d'annonce mis à jour.")
+
+        elif action == "identite":
+            parametre.nom_boutique = request.form.get("nom_boutique", "").strip() or None
+
+            nouveau_logo = request.files.get("logo")
+            if nouveau_logo and nouveau_logo.filename:
+                parametre.logo = sauvegarder_image(nouveau_logo)
+            elif request.form.get("supprimer_logo"):
+                parametre.logo = None
+
+            flash("Identité de la boutique mise à jour.")
+
+        elif action == "couleur":
+            couleur = request.form.get("couleur_accent", "").strip()
+            if not couleur:
+                parametre.couleur_accent = None
+                flash("Couleur d'accent réinitialisée par défaut.")
+            elif len(couleur) == 7 and couleur.startswith("#"):
+                parametre.couleur_accent = couleur
+                flash("Couleur d'accent mise à jour.")
+            else:
+                flash("Couleur invalide.")
 
         db.session.commit()
 

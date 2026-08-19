@@ -7,7 +7,7 @@
 :root {
   --forest-900: #eaf4fb;   /* texte principal (clair, sur fond sombre) */
   --forest-700: #0d3b66;   /* bleu profond (dégradés boutons) */
-  --sage-600:   #4fc3f7;   /* accent bleu glace */
+  --sage-600:   var(--accent-color, #4fc3f7);   /* accent bleu glace — pilotable depuis Admin > Apparence */
   --sage-500:   #7fd8ff;
   --sage-100:   #13202b;   /* surfaces légèrement plus claires que le fond */
   --sage-050:   #0b0f14;   /* fond général (identique à la boutique) */
@@ -23,6 +23,19 @@
 }
 
 * { box-sizing: border-box; }
+
+/* Bouton qui doit avoir l'apparence d'un simple lien (actions destructives
+   envoyées en POST au lieu d'un <a href> GET, pour la protection CSRF). */
+.admin-inline-form { display: inline-block; }
+.admin-lien-bouton {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--sage-600);
+  text-decoration: underline;
+  cursor: pointer;
+}
 
 body {
   margin: 0;

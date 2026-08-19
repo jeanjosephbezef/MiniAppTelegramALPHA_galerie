@@ -170,3 +170,17 @@ class Parametre(db.Model):
     # Texte défilant affiché en bandeau d'annonce en haut de l'accueil.
     # Vide -> aucun bandeau affiché.
     annonce_texte = db.Column(db.String(255))
+
+    # --- Identité visuelle, pilotable depuis Admin > Apparence ---
+
+    # Nom affiché dans le titre de l'onglet et le pied de page.
+    # Vide -> on retombe sur "Le Filon 74" par défaut.
+    nom_boutique = db.Column(db.String(100))
+
+    # Nom du fichier (dans static/images) utilisé comme logo. Vide -> pas de logo.
+    logo = db.Column(db.String(255))
+
+    # Couleur d'accent (format hexadécimal, ex: "#4fc3f7") utilisée pour les
+    # boutons, liens et surlignages sur toute l'appli (boutique + admin).
+    # Vide -> couleur bleu glace par défaut définie dans le CSS.
+    couleur_accent = db.Column(db.String(7))

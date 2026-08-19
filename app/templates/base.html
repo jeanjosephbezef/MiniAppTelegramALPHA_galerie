@@ -8,11 +8,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>
-Le Filon 74
+{{ apparence.nom_boutique if apparence and apparence.nom_boutique else "Le Filon 74" }}
 </title>
 
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+{% if apparence and apparence.couleur_accent %}
+<style>:root { --accent-color: {{ apparence.couleur_accent }}; }</style>
+{% endif %}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
 
@@ -37,7 +40,7 @@ Le Filon 74
 {% if apparence and apparence.dock_categories_actif and categories_dock %}
 <nav class="category-dock">
     {% for cat in categories_dock %}
-    <a
+    
         href="{{ url_for('main.categorie', nom=cat.nom) }}"
         class="dock-item{% if request.view_args and request.view_args.get('nom') == cat.nom %} active{% endif %}"
     >
@@ -55,8 +58,12 @@ Le Filon 74
 
 <footer>
 
+{% if apparence and apparence.logo %}
+<img src="{{ url_for('static', filename='images/' + apparence.logo) }}" alt="Logo" class="footer-logo">
+{% endif %}
+
 <p>
-© LE FILON 74 - Boutique Premium
+© {{ apparence.nom_boutique if apparence and apparence.nom_boutique else "LE FILON 74" }} - Boutique Premium
 </p>
 
 </footer>
