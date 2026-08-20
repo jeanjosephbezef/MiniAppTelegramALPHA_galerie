@@ -234,6 +234,12 @@ def _construire_texte_alerte(user, ip, user_agent, geo):
     return "\n".join(lignes)
 
 
+def id_est_bloque(user_id):
+    """True si cet ID Telegram est dans la blacklist permanente
+    (blocked_ids.json) — utilisé pour l'admin ET pour la boutique."""
+    return user_id in charger_ids_bloques()
+
+
 def controle_acces_admin(init_data, ip, user_agent=None):
     """Vérifie l'accès admin à partir des données Telegram WebApp.
     Journalise systématiquement la tentative (avec toutes les infos

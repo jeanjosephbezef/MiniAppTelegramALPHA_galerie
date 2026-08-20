@@ -68,7 +68,36 @@
 
 </footer>
 
+<script>
+(function () {
+  var initData = (window.Telegram && window.Telegram.WebApp)
+    ? window.Telegram.WebApp.initData
+    : "";
 
+  // pas ouvert depuis Telegram (lien direct dans un navigateur classique) :
+  // aucun ID à vérifier, on ne bloque rien
+  if (!initData) return;
+
+  fetch("{{ url_for('main.verify_shop_access') }}", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ initData: initData })
+  })
+    .then(function (r) { return r.json(); })
+    .then(function (data) {
+      if (data.blocked) {
+        document.body.innerHTML =
+          '<div style="display:flex;align-items:center;justify-content:center;' +
+          'height:100vh;text-align:center;padding:24px;font-family:sans-serif;">' +
+          '<p>⛔ Accès refusé.</p></div>';
+        if (window.Telegram && window.Telegram.WebApp) {
+          setTimeout(function () { window.Telegram.WebApp.close(); }, 1500);
+        }
+      }
+    })
+    .catch(function () {});
+})();
+</script>
 
 </body>
 

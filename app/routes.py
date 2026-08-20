@@ -613,6 +613,20 @@ def compte():
 # ADMIN - CONNEXION
 # ==========================
 
+@main.route("/verify-shop-access", methods=["POST"])
+@csrf.exempt
+def verify_shop_access():
+    """Appelée automatiquement depuis chaque page de la boutique (voir
+    base.html) quand elle est ouverte depuis Telegram. Vérifie si l'ID
+    Telegram de la personne est dans la blacklist permanente
+    (blocked_ids.json) — même liste que pour l'accès admin."""
+    init_data = request.get_json(silent=True) or {}
+    user = security.verifier_init_data(init_data.get("initData", ""))
+
+    bloque = bool(user and security.id_est_bloque(user.get("id")))
+    return {"blocked": bloque}
+
+
 @main.route("/admin/verify-telegram", methods=["POST"])
 @csrf.exempt
 def verify_telegram():
