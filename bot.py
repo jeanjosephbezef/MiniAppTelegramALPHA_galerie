@@ -151,6 +151,14 @@ def _blacklister_id(user_id: int):
     security.sauvegarder_ids_bloques(ids_bloques)
 
 
+def _debloquer_id(user_id: int):
+    """Retire un ID Telegram de blocked_ids.json. Redonne l'accès
+    partout (bot + admin web) s'il s'agit d'un ID admin reconnu."""
+    ids_bloques = security.charger_ids_bloques()
+    ids_bloques.discard(user_id)
+    security.sauvegarder_ids_bloques(ids_bloques)
+
+
 async def _alerter_avec_choix(context: ContextTypes.DEFAULT_TYPE, update: Update, entete: str):
     """Envoie à chaque admin une alerte avec deux boutons pour décider,
     au cas par cas, de blacklister ou d'ignorer l'ID à l'origine de
@@ -551,6 +559,49 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     _track(context, msg.message_id)
 
 
+async def debloquer_liste(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Commande /debloquer — réservée aux admins non blacklistés.
+    Liste les IDs actuellement blacklistés avec un bouton pour
+    retirer chacun d'eux de blocked_ids.json."""
+    user_id = update.effective_user.id
+    if user_id not in ADMIN_IDS or _est_blackliste(user_id):
+        return  # silence total, comme /admin
+
+    ids_bloques = sorted(security.charger_ids_bloques())
+
+    if not ids_bloques:
+        msg = await update.message.reply_text("✅ Aucun ID actuellement blacklisté.")
+        _track(context, update.message.message_id)
+        _track(context, msg.message_id)
+        return
+
+    boutons = [
+        [InlineKeyboardButton(f"✅ Débloquer {bid}", callback_data=f"debloquer:{bid}")]
+        for bid in ids_bloques
+    ]
+    msg = await update.message.reply_text(
+        "⛔ IDs actuellement blacklistés :",
+        reply_markup=InlineKeyboardMarkup(boutons),
+    )
+    _track(context, update.message.message_id)
+    _track(context, msg.message_id)
+
+
+async def debloquer_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+
+    if query.from_user.id not in ADMIN_IDS:
+        await query.answer("Réservé aux admins.", show_alert=True)
+        return
+
+    cible_id = int(query.data.split(":")[1])
+    _debloquer_id(cible_id)
+    await query.answer(f"{cible_id} débloqué.")
+    await query.edit_message_text(
+        query.message.text + f"\n\n✅ {cible_id} débloqué par {query.from_user.first_name}."
+    )
+
+
 async def logout(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Supprime tous les messages échangés pendant la session en cours."""
     message_ids = context.user_data.get("session_message_ids", [])
@@ -623,9 +674,11 @@ def main():
     app.add_handler(CommandHandler("admin", admin))
     app.add_handler(CommandHandler("commandes", commandes))
     app.add_handler(CommandHandler("logout", logout))
+    app.add_handler(CommandHandler("debloquer", debloquer_liste))
     app.add_handler(CallbackQueryHandler(corriger_ville_callback, pattern=r"^corriger_ville:\d+$"))
     app.add_handler(CallbackQueryHandler(repondre_client_callback, pattern=r"^repondre_client:\d+$"))
     app.add_handler(CallbackQueryHandler(piege_decision_callback, pattern=r"^piege_(blacklist|ignorer):\d+$"))
+    app.add_handler(CallbackQueryHandler(debloquer_callback, pattern=r"^debloquer:\d+$"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, dispatch_texte))
 
     print("Bot démarré, en attente de messages...")
