@@ -183,10 +183,15 @@ def journaliser_tentative(user, autorise, ip, user_agent=None, geo=None):
         print(f"Impossible d'écrire dans le log de sécurité : {e}")
 
 
-def envoyer_alerte_telegram(texte):
+def envoyer_alerte_telegram(texte, exclure_id=None):
+    """Envoie le texte à tous les admins (ADMIN_IDS), sauf exclure_id
+    si précisé — utile pour notifier "les autres admins" sans
+    notifier la personne à l'origine de l'événement."""
     if not BOT_TOKEN or not ADMIN_IDS:
         return
     for admin_id in ADMIN_IDS:
+        if exclure_id is not None and admin_id == exclure_id:
+            continue
         try:
             requests.post(
                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",

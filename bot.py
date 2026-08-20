@@ -24,6 +24,7 @@ from telegram.ext import (
 import json
 import ast
 import hmac
+import time
 
 # accès aux modèles Flask/SQLAlchemy pour lire et corriger les commandes,
 # et au module de sécurité partagé avec le site (mêmes logs, mêmes alertes)
@@ -114,6 +115,21 @@ def _notifier_intrusion(update: Update, autorise: bool = False):
         user_dict, ip="(via bot Telegram)", user_agent=None, geo=None
     )
     security.envoyer_alerte_telegram(texte)
+
+
+def _notifier_connexion_admin(update: Update):
+    """Prévient l'AUTRE admin (pas celui qui vient de se connecter)
+    qu'un accès admin réussi vient d'avoir lieu via /admin."""
+    user = update.effective_user
+    nom_complet = " ".join(p for p in [user.first_name, user.last_name] if p) or "inconnu"
+    texte = (
+        "🔓 Connexion admin réussie\n"
+        f"👤 Nom : {nom_complet}\n"
+        f"📛 Username : @{user.username or 'inconnu'}\n"
+        f"🆔 Telegram ID : {user.id}\n"
+        f"🕐 {time.strftime('%d/%m/%Y — %H:%M')}"
+    )
+    security.envoyer_alerte_telegram(texte, exclure_id=user.id)
 
 
 def _est_blackliste(user_id: int) -> bool:
@@ -256,6 +272,7 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
 
     if password_ok:
         security.reinitialiser_echecs(cle_blocage)
+        _notifier_connexion_admin(update)
         clavier = InlineKeyboardMarkup([
             [InlineKeyboardButton(
                 text="🔐 Ouvrir l'admin",
