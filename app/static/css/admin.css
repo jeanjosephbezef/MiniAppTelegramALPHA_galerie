@@ -728,3 +728,54 @@ h1 {
 .btn-secondaire:hover {
   background: var(--sage-100);
 }
+/* Bouton stylé pour ressembler à un lien d'action (dans un <form> POST) */
+.btn-lien {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-lien:hover {
+  text-decoration: underline;
+}
+
+/* Barre de recherche/filtre produits */
+.admin-filtres {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0;
+  align-items: center;
+}
+
+.admin-filtres input[type="text"],
+.admin-filtres select {
+  padding: 8px 10px;
+  border: 1.5px solid var(--sage-600);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 0.9rem;
+}
+
+.badge-actif {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.badge-actif.actif {
+  background: #e3f3e5;
+  color: #2e7d32;
+}
+
+.badge-actif.inactif {
+  background: #f3e3e3;
+  color: #a33;
+}

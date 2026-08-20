@@ -4,11 +4,34 @@
 
 {% block content %}
 
-<h1>Gestion des produits</h1>
+<div class="admin-header-row">
+  <h1>Gestion des produits</h1>
+  <a href="{{ url_for('main.nouveau_produit') }}">
+    <button type="button">➕ Ajouter un produit</button>
+  </a>
+</div>
 
-<a href="{{ url_for('main.nouveau_produit') }}">
-  <button type="button">➕ Ajouter un produit</button>
-</a>
+<form method="GET" class="admin-filtres">
+  <input type="text" name="q" placeholder="Rechercher un produit..." value="{{ recherche }}">
+
+  <select name="categorie">
+    <option value="">Toutes les catégories</option>
+    {% for cat in categories %}
+    <option value="{{ cat.nom }}" {% if cat.nom == categorie_filtre %}selected{% endif %}>{{ cat.nom }}</option>
+    {% endfor %}
+  </select>
+
+  <select name="statut">
+    <option value="">Tous les statuts</option>
+    <option value="actif" {% if statut_filtre == "actif" %}selected{% endif %}>Actifs</option>
+    <option value="inactif" {% if statut_filtre == "inactif" %}selected{% endif %}>Masqués</option>
+  </select>
+
+  <button type="submit">Filtrer</button>
+  {% if recherche or categorie_filtre or statut_filtre %}
+  <a href="{{ url_for('main.admin_produits') }}">✕ Réinitialiser</a>
+  {% endif %}
+</form>
 
 <table class="admin-table">
   <thead>
@@ -16,6 +39,7 @@
       <th>Photo</th>
       <th>Nom</th>
       <th>Prix</th>
+      <th>Statut</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -32,14 +56,32 @@
       <td>{{ produit.nom }}</td>
       <td>{{ "%.2f"|format(produit.prix or 0) }} €</td>
       <td>
+        <span class="badge-actif {{ 'actif' if produit.actif else 'inactif' }}">
+          {{ 'Actif' if produit.actif else 'Masqué' }}
+        </span>
+      </td>
+      <td class="admin-actions">
         <a href="{{ url_for('main.modifier_produit', id=produit.id) }}">✏️</a>
+
+        <form method="POST" action="{{ url_for('main.toggle_actif_produit', id=produit.id) }}" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-lien" title="{{ 'Masquer' if produit.actif else 'Réactiver' }}">
+            {{ '🙈' if produit.actif else '👁️' }}
+          </button>
+        </form>
+
+        <form method="POST" action="{{ url_for('main.dupliquer_produit', id=produit.id) }}" style="display:inline;">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-lien" title="Dupliquer">📋</button>
+        </form>
+
         <a href="{{ url_for('main.supprimer_produit', id=produit.id) }}"
            onclick="return confirm('Supprimer ce produit ?');">🗑️</a>
       </td>
     </tr>
     {% else %}
     <tr>
-      <td colspan="4">Aucun produit pour le moment.</td>
+      <td colspan="5">Aucun produit ne correspond.</td>
     </tr>
     {% endfor %}
   </tbody>

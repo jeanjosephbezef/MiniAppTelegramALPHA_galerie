@@ -16,6 +16,14 @@
   <label for="nom">Nom</label>
   <input type="text" id="nom" name="nom" value="{{ produit.nom }}" required>
 
+  <div class="toggle-champ">
+    <label class="toggle-switch">
+      <input type="checkbox" name="actif" {% if produit.actif %}checked{% endif %}>
+      <span class="toggle-slider"></span>
+    </label>
+    <span class="toggle-label">Produit visible dans la boutique</span>
+  </div>
+
   <label for="description">Description</label>
   <textarea id="description" name="description" rows="4" required>{{ produit.description }}</textarea>
 

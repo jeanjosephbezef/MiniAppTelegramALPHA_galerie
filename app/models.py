@@ -20,6 +20,7 @@ class Produit(db.Model):
     cbd = db.Column(db.String(50))
     thc = db.Column(db.String(50))
     origine = db.Column(db.String(100))
+    actif = db.Column(db.Boolean, default=True, nullable=False)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
 
     variantes = db.relationship(
@@ -101,11 +102,12 @@ class CategoriePrincipale(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     image = db.Column(db.String(255), default="default.jpg")
+    ordre = db.Column(db.Integer, default=0)
 
     sous_categories = db.relationship(
         "Category",
         backref="categorie_principale",
-        order_by="Category.nom"
+        order_by="Category.ordre, Category.nom"
     )
 
 
@@ -116,6 +118,7 @@ class Category(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     image = db.Column(db.String(255), default="default.jpg")
+    ordre = db.Column(db.Integer, default=0)
     categorie_principale_id = db.Column(
         db.Integer, db.ForeignKey("categorie_principale.id"), nullable=True
     )

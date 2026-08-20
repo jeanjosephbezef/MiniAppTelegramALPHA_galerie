@@ -340,7 +340,7 @@ def sauvegarder_types(produit, form):
 
 @main.route("/")
 def accueil():
-    nouveautes = Produit.query.order_by(Produit.date_creation.desc()).limit(8).all()
+    nouveautes = Produit.query.filter_by(actif=True).order_by(Produit.date_creation.desc()).limit(8).all()
     categories_principales = CategoriePrincipale.query.order_by(CategoriePrincipale.nom).all()
     return render_template("accueil.html", nouveautes=nouveautes, categories_principales=categories_principales)
 
@@ -355,7 +355,7 @@ def liste_produits():
     categorie_filtre = request.args.get("categorie", "")
     recherche = request.args.get("q", "").strip()
 
-    query = Produit.query
+    query = Produit.query.filter_by(actif=True)
 
     if categorie_filtre:
         query = query.filter_by(categorie=categorie_filtre)
@@ -398,7 +398,7 @@ def liste_produits():
 
 @main.route("/produit/<int:id>")
 def detail_produit(id):
-    produit = Produit.query.get_or_404(id)
+    produit = Produit.query.filter_by(id=id, actif=True).first_or_404()
     return render_template("produit.html", produit=produit)
 
 
@@ -420,7 +420,7 @@ def categorie_principale_detail(id):
 
 @main.route("/categorie/<nom>")
 def categorie(nom):
-    produits = Produit.query.filter_by(categorie=nom).all()
+    produits = Produit.query.filter_by(categorie=nom, actif=True).all()
     return render_template("categorie.html", produits=produits, nom=nom)
 
 
@@ -431,7 +431,7 @@ def categorie(nom):
 @main.route("/ajouter/<int:id>")
 def ajouter_panier(id):
 
-    produit = Produit.query.get_or_404(id)
+    produit = Produit.query.filter_by(id=id, actif=True).first_or_404()
 
     # Variante optionnelle passée en paramètre : /ajouter/12?variante=3
     variante_id = request.args.get("variante")
@@ -756,8 +756,82 @@ def admin():
 @main.route("/admin/produits")
 @admin_required
 def admin_produits():
-    produits = Produit.query.all()
-    return render_template("admin/produits.html", produits=produits)
+
+    recherche = request.args.get("q", "").strip()
+    categorie_filtre = request.args.get("categorie", "").strip()
+    statut_filtre = request.args.get("statut", "").strip()  # "actif" / "inactif" / ""
+
+    requete = Produit.query
+
+    if recherche:
+        requete = requete.filter(Produit.nom.ilike(f"%{recherche}%"))
+
+    if categorie_filtre:
+        requete = requete.filter(Produit.categorie == categorie_filtre)
+
+    if statut_filtre == "actif":
+        requete = requete.filter(Produit.actif.is_(True))
+    elif statut_filtre == "inactif":
+        requete = requete.filter(Produit.actif.is_(False))
+
+    produits = requete.order_by(Produit.nom).all()
+    categories = Category.query.order_by(Category.nom).all()
+
+    return render_template(
+        "admin/produits.html",
+        produits=produits,
+        categories=categories,
+        recherche=recherche,
+        categorie_filtre=categorie_filtre,
+        statut_filtre=statut_filtre,
+    )
+
+
+@main.route("/admin/produit/<int:id>/toggle-actif", methods=["POST"])
+@admin_required
+def toggle_actif_produit(id):
+    produit = Produit.query.get_or_404(id)
+    produit.actif = not produit.actif
+    db.session.commit()
+    flash(f"« {produit.nom} » est maintenant {'actif' if produit.actif else 'masqué'}.")
+    return redirect(request.referrer or url_for("main.admin_produits"))
+
+
+@main.route("/admin/produit/<int:id>/dupliquer", methods=["POST"])
+@admin_required
+def dupliquer_produit(id):
+    original = Produit.query.get_or_404(id)
+
+    copie = Produit(
+        nom=f"{original.nom} (copie)",
+        description=original.description,
+        prix=original.prix,
+        categorie=original.categorie,
+        cbd=original.cbd,
+        thc=original.thc,
+        origine=original.origine,
+        image=original.image,
+        video=original.video,
+        actif=False,  # la copie démarre masquée, le temps de l'ajuster
+    )
+    db.session.add(copie)
+    db.session.flush()
+
+    for v in original.variantes:
+        db.session.add(Variante(produit_id=copie.id, poids=v.poids, prix=v.prix))
+
+    for t in original.types:
+        db.session.add(TypeProduit(produit_id=copie.id, nom=t.nom, ordre=t.ordre))
+
+    # Les médias physiques (fichiers) sont réutilisés, pas recopiés sur disque
+    for m in original.medias:
+        db.session.add(MediaProduit(
+            produit_id=copie.id, fichier=m.fichier, type=m.type, ordre=m.ordre
+        ))
+
+    db.session.commit()
+    flash(f"« {original.nom} » dupliqué. Pense à modifier la copie avant de l'activer.")
+    return redirect(url_for("main.modifier_produit", id=copie.id))
 
 
 @main.route("/admin/commandes")
@@ -845,7 +919,8 @@ def nouveau_produit():
             thc=request.form.get("thc"),
             origine=request.form.get("origine"),
             image=sauvegarder_image(request.files.get("image")),
-            video=sauvegarder_video(request.files.get("video"))
+            video=sauvegarder_video(request.files.get("video")),
+            actif=bool(request.form.get("actif"))
         )
 
         db.session.add(produit)
@@ -890,6 +965,7 @@ def modifier_produit(id):
         produit.cbd = request.form.get("cbd")
         produit.thc = request.form.get("thc")
         produit.origine = request.form.get("origine")
+        produit.actif = bool(request.form.get("actif"))
 
         nouvelle_image = request.files.get("image")
         if nouvelle_image and nouvelle_image.filename:
@@ -951,8 +1027,18 @@ def supprimer_produit(id):
 @main.route("/admin/categories")
 @admin_required
 def admin_categories():
-    categories = Category.query.all()
-    return render_template("admin/categories.html", categories=categories)
+    categories = Category.query.order_by(Category.ordre, Category.nom).all()
+
+    nb_produits_par_categorie = {
+        cat.nom: Produit.query.filter_by(categorie=cat.nom).count()
+        for cat in categories
+    }
+
+    return render_template(
+        "admin/categories.html",
+        categories=categories,
+        nb_produits_par_categorie=nb_produits_par_categorie
+    )
 
 
 @main.route("/admin/categorie/nouvelle", methods=["GET", "POST"])
@@ -963,9 +1049,20 @@ def nouvelle_categorie():
 
     if request.method == "POST":
 
+        nom = request.form["nom"].strip()
+
+        doublon = Category.query.filter(db.func.lower(Category.nom) == nom.lower()).first()
+        if doublon:
+            flash(f"Une catégorie « {nom} » existe déjà.")
+            return render_template(
+                "admin/categorie_form.html",
+                categories_principales=categories_principales
+            )
+
         categorie = Category(
-            nom=request.form["nom"],
+            nom=nom,
             image=sauvegarder_image(request.files.get("image")),
+            ordre=request.form.get("ordre", type=int) or 0,
             categorie_principale_id=request.form.get("categorie_principale_id") or None
         )
 
@@ -989,8 +1086,28 @@ def modifier_categorie(id):
 
     if request.method == "POST":
 
-        categorie.nom = request.form["nom"]
+        nom = request.form["nom"].strip()
+
+        doublon = Category.query.filter(
+            db.func.lower(Category.nom) == nom.lower(), Category.id != categorie.id
+        ).first()
+        if doublon:
+            flash(f"Une catégorie « {nom} » existe déjà.")
+            return render_template(
+                "admin/modifier_categorie.html",
+                categorie=categorie,
+                categories_principales=categories_principales
+            )
+
+        ancien_nom = categorie.nom
+        categorie.nom = nom
+        categorie.ordre = request.form.get("ordre", type=int) or 0
         categorie.categorie_principale_id = request.form.get("categorie_principale_id") or None
+
+        # les produits référencent la catégorie par son nom (pas par id) :
+        # on répercute le renommage pour ne pas les orpheliner
+        if ancien_nom != nom:
+            Produit.query.filter_by(categorie=ancien_nom).update({"categorie": nom})
 
         nouvelle_image = request.files.get("image")
         if nouvelle_image and nouvelle_image.filename:
@@ -1011,11 +1128,19 @@ def modifier_categorie(id):
     )
 
 
-@main.route("/admin/categorie/<int:id>/supprimer")
+@main.route("/admin/categorie/<int:id>/supprimer", methods=["POST"])
 @admin_required
 def supprimer_categorie(id):
 
     categorie = Category.query.get_or_404(id)
+
+    nb_produits = Produit.query.filter_by(categorie=categorie.nom).count()
+    if nb_produits:
+        flash(
+            f"Impossible de supprimer « {categorie.nom} » : {nb_produits} "
+            f"produit(s) y sont encore rattaché(s). Change leur catégorie d'abord."
+        )
+        return redirect(url_for("main.admin_categories"))
 
     db.session.delete(categorie)
     db.session.commit()
@@ -1030,7 +1155,9 @@ def supprimer_categorie(id):
 @main.route("/admin/categories-principales")
 @admin_required
 def admin_categories_principales():
-    categories_principales = CategoriePrincipale.query.order_by(CategoriePrincipale.nom).all()
+    categories_principales = CategoriePrincipale.query.order_by(
+        CategoriePrincipale.ordre, CategoriePrincipale.nom
+    ).all()
     return render_template(
         "admin/categories_principales.html",
         categories_principales=categories_principales
@@ -1043,9 +1170,19 @@ def nouvelle_categorie_principale():
 
     if request.method == "POST":
 
+        nom = request.form["nom"].strip()
+
+        doublon = CategoriePrincipale.query.filter(
+            db.func.lower(CategoriePrincipale.nom) == nom.lower()
+        ).first()
+        if doublon:
+            flash(f"Une catégorie principale « {nom} » existe déjà.")
+            return render_template("admin/categorie_principale_form.html")
+
         principale = CategoriePrincipale(
-            nom=request.form["nom"],
-            image=sauvegarder_image(request.files.get("image"))
+            nom=nom,
+            image=sauvegarder_image(request.files.get("image")),
+            ordre=request.form.get("ordre", type=int) or 0
         )
 
         db.session.add(principale)
@@ -1056,11 +1193,18 @@ def nouvelle_categorie_principale():
     return render_template("admin/categorie_principale_form.html")
 
 
-@main.route("/admin/categorie-principale/<int:id>/supprimer")
+@main.route("/admin/categorie-principale/<int:id>/supprimer", methods=["POST"])
 @admin_required
 def supprimer_categorie_principale(id):
 
     principale = CategoriePrincipale.query.get_or_404(id)
+
+    if principale.sous_categories:
+        flash(
+            f"Impossible de supprimer « {principale.nom} » : "
+            f"{len(principale.sous_categories)} sous-catégorie(s) encore rattachée(s)."
+        )
+        return redirect(url_for("main.admin_categories_principales"))
 
     db.session.delete(principale)
     db.session.commit()

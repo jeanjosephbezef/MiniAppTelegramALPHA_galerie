@@ -32,8 +32,11 @@
       <td>{{ principale.nom }}</td>
       <td>{{ principale.sous_categories|length }}</td>
       <td>
-        <a href="{{ url_for('main.supprimer_categorie_principale', id=principale.id) }}"
-           onclick="return confirm('Supprimer cette catégorie principale ? Les sous-catégories liées perdront leur rattachement.');">🗑️</a>
+        <form method="POST" action="{{ url_for('main.supprimer_categorie_principale', id=principale.id) }}"
+              onsubmit="return confirm('Supprimer cette catégorie principale ?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-lien">🗑️</button>
+        </form>
       </td>
     </tr>
     {% else %}

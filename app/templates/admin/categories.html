@@ -16,6 +16,7 @@
     <tr>
       <th>Image</th>
       <th>Nom</th>
+      <th>Produits</th>
       <th>Actions</th>
     </tr>
   </thead>
@@ -28,10 +29,14 @@
         {% endif %}
       </td>
       <td>{{ cat.nom }}</td>
+      <td>{{ nb_produits_par_categorie.get(cat.nom, 0) }}</td>
       <td class="admin-actions">
         <a href="{{ url_for('main.modifier_categorie', id=cat.id) }}">✏️ Modifier</a>
-        <a href="{{ url_for('main.supprimer_categorie', id=cat.id) }}"
-           onclick="return confirm('Supprimer cette catégorie ?');">🗑️ Supprimer</a>
+        <form method="POST" action="{{ url_for('main.supprimer_categorie', id=cat.id) }}" style="display:inline;"
+              onsubmit="return confirm('Supprimer cette catégorie ?');">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button type="submit" class="btn-lien">🗑️ Supprimer</button>
+        </form>
       </td>
     </tr>
     {% endfor %}
