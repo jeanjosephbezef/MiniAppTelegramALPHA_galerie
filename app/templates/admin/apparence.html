@@ -16,7 +16,7 @@
 
     {% if parametre.logo %}
     <div class="fond-apercu">
-      <img src="{{ url_for('static', filename='images/' + parametre.logo) }}" alt="Logo actuel">
+      <img src="{{ media_url(parametre.logo) }}" alt="Logo actuel">
     </div>
     {% endif %}
 
@@ -76,7 +76,7 @@
 
     {% if parametre.fond_ecran %}
     <div class="fond-apercu">
-      <img src="{{ url_for('static', filename='images/' + parametre.fond_ecran) }}" alt="Fond d'écran actuel">
+      <img src="{{ media_url(parametre.fond_ecran) }}" alt="Fond d'écran actuel">
     </div>
     {% else %}
     <p class="apparence-note">Aucun fond personnalisé : l'image par défaut du thème est utilisée.</p>

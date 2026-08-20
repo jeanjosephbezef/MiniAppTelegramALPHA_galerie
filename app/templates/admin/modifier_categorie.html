@@ -24,7 +24,7 @@
 
   {% if categorie.image and categorie.image != 'default.jpg' %}
   <p>Image actuelle :</p>
-  <img src="{{ url_for('static', filename='images/' + categorie.image) }}" alt="{{ categorie.nom }}" class="admin-thumb">
+  <img src="{{ media_url(categorie.image) }}" alt="{{ categorie.nom }}" class="admin-thumb">
   <label class="toggle-champ">
     <input type="checkbox" name="supprimer_image" style="width:auto;">
     <span class="toggle-label">🗑️ Supprimer l'image actuelle (repasse à l'image par défaut)</span>

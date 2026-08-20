@@ -27,11 +27,11 @@
             <div class="carrousel-slide">
                 {% if m.type == 'video' %}
                 <video controls playsinline
-                       poster="{% if m.poster %}{{ url_for('static', filename='images/' + m.poster) }}{% endif %}">
-                    <source src="{{ url_for('static', filename='videos/' + m.fichier) }}">
+                       poster="{% if m.poster %}{{ media_url(m.poster) }}{% endif %}">
+                    <source src="{{ media_url(m.fichier, 'videos') }}">
                 </video>
                 {% else %}
-                <img src="{{ url_for('static', filename='images/' + m.fichier) }}" alt="{{ produit.nom }}">
+                <img src="{{ media_url(m.fichier) }}" alt="{{ produit.nom }}">
                 {% endif %}
             </div>
             {% endfor %}

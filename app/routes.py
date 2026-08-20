@@ -2,7 +2,11 @@ import os
 import json
 import requests
 import hmac
+import re
 from functools import wraps
+
+import cloudinary
+import cloudinary.uploader
 
 from . import security
 
@@ -36,6 +40,21 @@ from .models import (
 
 main = Blueprint("main", __name__)
 
+
+# --- Cloudinary ---
+# Les identifiants viennent des variables d'environnement (voir .env / Render).
+# Toutes les images/vidéos uploadées par l'admin sont envoyées vers Cloudinary
+# (stockage persistant) au lieu du disque local (effacé à chaque redéploiement
+# sur Render). Les images par défaut ("default.jpg") restent servies depuis
+# app/static/images, car elles font partie du dépôt Git et ne changent jamais.
+cloudinary.config(
+    cloud_name=os.environ.get("CLOUDINARY_CLOUD_NAME"),
+    api_key=os.environ.get("CLOUDINARY_API_KEY"),
+    api_secret=os.environ.get("CLOUDINARY_API_SECRET"),
+    secure=True
+)
+
+CLOUDINARY_DOSSIER = "miniapp_telegram"  # dossier racine sur Cloudinary
 
 UPLOAD_FOLDER = "app/static/images"
 UPLOAD_FOLDER_VIDEOS = "app/static/videos"
@@ -133,6 +152,23 @@ def injecter_apparence_globale():
     )
 
 
+def media_url(nom, dossier="images"):
+    """Construit l'URL d'affichage d'une image/vidéo, qu'elle vienne de
+    Cloudinary (URL complète stockée en base) ou d'un fichier par défaut
+    resté local dans app/static (ex: 'default.jpg'). Utiliser cette
+    fonction dans les templates au lieu de url_for('static', ...) partout
+    où une image/vidéo uploadée par l'admin est affichée."""
+
+    if not nom:
+        return ""
+    if nom.startswith("http://") or nom.startswith("https://"):
+        return nom
+    return url_for("static", filename=f"{dossier}/{nom}")
+
+
+main.add_app_template_global(media_url, name="media_url")
+
+
 def extension_autorisee(nom_fichier):
     return (
         "." in nom_fichier
@@ -148,29 +184,29 @@ def extension_video_autorisee(nom_fichier):
 
 
 def sauvegarder_image(fichier):
+    """Envoie l'image sur Cloudinary et retourne son URL complète
+    (stockée telle quelle en base). Retourne 'default.jpg' si aucun
+    fichier n'est fourni ou si le format n'est pas autorisé."""
 
     if not fichier or not fichier.filename:
         return "default.jpg"
 
     if not extension_autorisee(fichier.filename):
-        # Type de fichier non autorisé -> image par défaut
         return "default.jpg"
 
-    nom = secure_filename(fichier.filename)
+    resultat = cloudinary.uploader.upload(
+        fichier,
+        folder=f"{CLOUDINARY_DOSSIER}/images",
+        resource_type="image"
+    )
 
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-    chemin = os.path.join(UPLOAD_FOLDER, nom)
-
-    fichier.save(chemin)
-
-    return nom
+    return resultat["secure_url"]
 
 
 def sauvegarder_video(fichier):
-    """Enregistre la vidéo produit si un fichier valide est fourni.
-    Retourne None si aucun fichier ou format non autorisé (contrairement
-    à l'image, il n'y a pas de vidéo par défaut)."""
+    """Envoie la vidéo produit sur Cloudinary si un fichier valide est
+    fourni. Retourne None si aucun fichier ou format non autorisé
+    (contrairement à l'image, il n'y a pas de vidéo par défaut)."""
 
     if not fichier or not fichier.filename:
         return None
@@ -178,21 +214,20 @@ def sauvegarder_video(fichier):
     if not extension_video_autorisee(fichier.filename):
         return None
 
-    nom = secure_filename(fichier.filename)
+    resultat = cloudinary.uploader.upload(
+        fichier,
+        folder=f"{CLOUDINARY_DOSSIER}/videos",
+        resource_type="video"
+    )
 
-    os.makedirs(UPLOAD_FOLDER_VIDEOS, exist_ok=True)
-
-    chemin = os.path.join(UPLOAD_FOLDER_VIDEOS, nom)
-
-    fichier.save(chemin)
-
-    return nom
+    return resultat["secure_url"]
 
 
 def sauvegarder_fichier_galerie(fichier, dossier, extensions_ok):
-    """Comme sauvegarder_image/sauvegarder_video, mais préfixe le nom du
-    fichier pour éviter qu'un envoi multiple (plusieurs photos/vidéos
-    d'un coup) n'écrase un fichier existant portant le même nom."""
+    """Comme sauvegarder_image/sauvegarder_video, pour la galerie
+    photos/vidéos supplémentaires d'un produit. 'dossier' vaut
+    UPLOAD_FOLDER ou UPLOAD_FOLDER_VIDEOS, utilisé ici uniquement pour
+    déterminer si on envoie une image ou une vidéo à Cloudinary."""
 
     if not fichier or not fichier.filename:
         return None
@@ -200,13 +235,14 @@ def sauvegarder_fichier_galerie(fichier, dossier, extensions_ok):
     if not extensions_ok(fichier.filename):
         return None
 
-    import uuid
-    nom = f"{uuid.uuid4().hex[:8]}_{secure_filename(fichier.filename)}"
+    est_video = dossier == UPLOAD_FOLDER_VIDEOS
+    resultat = cloudinary.uploader.upload(
+        fichier,
+        folder=f"{CLOUDINARY_DOSSIER}/{'videos' if est_video else 'images'}",
+        resource_type="video" if est_video else "image"
+    )
 
-    os.makedirs(dossier, exist_ok=True)
-    fichier.save(os.path.join(dossier, nom))
-
-    return nom
+    return resultat["secure_url"]
 
 
 def sauvegarder_medias_supplementaires(produit, fichiers):
@@ -257,13 +293,42 @@ def supprimer_medias(form):
             db.session.delete(media)
 
 
+def _extraire_public_id_cloudinary(url, est_video=False):
+    """Extrait le public_id Cloudinary depuis une URL du type :
+    https://res.cloudinary.com/<cloud>/image/upload/v123456/dossier/nom.jpg
+    -> 'dossier/nom' (sans extension, sans version). Retourne None si
+    l'URL ne correspond pas au format attendu."""
+
+    correspondance = re.search(r"/upload/(?:v\d+/)?(.+)\.\w+$", url)
+    if not correspondance:
+        return None
+    return correspondance.group(1)
+
+
 def _supprimer_fichier_disque(dossier, nom_fichier):
-    """Supprime un fichier du disque s'il existe, sans jamais toucher à
-    l'image par défaut (partagée par tous les produits/catégories sans photo)."""
+    """Supprime un média Cloudinary (si nom_fichier est une URL Cloudinary)
+    ou un fichier local historique (ancien système, avant migration), sans
+    jamais toucher à l'image par défaut partagée par tous les
+    produits/catégories sans photo."""
 
     if not nom_fichier or nom_fichier == "default.jpg":
         return
 
+    if nom_fichier.startswith("http://") or nom_fichier.startswith("https://"):
+        est_video = dossier == UPLOAD_FOLDER_VIDEOS
+        public_id = _extraire_public_id_cloudinary(nom_fichier, est_video)
+        if public_id:
+            try:
+                cloudinary.uploader.destroy(
+                    public_id,
+                    resource_type="video" if est_video else "image"
+                )
+            except Exception:
+                pass
+        return
+
+    # Compatibilité : anciens fichiers encore présents localement
+    # (uploadés avant le passage à Cloudinary)
     chemin = os.path.join(dossier, nom_fichier)
     try:
         if os.path.exists(chemin):

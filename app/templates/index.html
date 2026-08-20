@@ -14,7 +14,7 @@
   {% for produit in produits %}
   <div class="card">
     {% if produit.image %}
-    <img src="{{ url_for('static', filename='images/' + produit.image) }}" alt="{{ produit.nom }}">
+    <img src="{{ media_url(produit.image) }}" alt="{{ produit.nom }}">
     {% endif %}
 
     <h2>{{ produit.nom }}</h2>

@@ -104,9 +104,9 @@
   <label for="image">Image</label>
   {% if produit.image and produit.image != 'default.jpg' %}
   <p class="admin-hint">
-    Image actuelle : {{ produit.image }} — choisis un fichier ci-dessous pour la remplacer, ou coche la case pour la supprimer.
+    Une image est déjà définie — choisis un fichier ci-dessous pour la remplacer, ou coche la case pour la supprimer.
   </p>
-  <img src="{{ url_for('static', filename='images/' + produit.image) }}"
+  <img src="{{ media_url(produit.image) }}"
        alt="{{ produit.nom }}" style="max-width:160px;border-radius:12px;margin-bottom:12px;display:block;">
   <label class="toggle-champ">
     <input type="checkbox" name="supprimer_image" style="width:auto;">
@@ -118,7 +118,7 @@
   <label for="video">Vidéo</label>
   <p class="admin-hint">
     {% if produit.video %}
-    Vidéo actuelle : {{ produit.video }} — choisis un fichier ci-dessous pour la remplacer, ou coche la case pour la supprimer.
+    Une vidéo est déjà définie — choisis un fichier ci-dessous pour la remplacer, ou coche la case pour la supprimer.
     {% else %}
     Aucune vidéo pour ce produit. Formats acceptés : mp4, mov, webm.
     {% endif %}
@@ -138,9 +138,9 @@
     {% for m in produit.medias %}
     <label class="galerie-admin-item">
       {% if m.type == 'video' %}
-      <video src="{{ url_for('static', filename='videos/' + m.fichier) }}" muted></video>
+      <video src="{{ media_url(m.fichier, 'videos') }}" muted></video>
       {% else %}
-      <img src="{{ url_for('static', filename='images/' + m.fichier) }}" alt="">
+      <img src="{{ media_url(m.fichier) }}" alt="">
       {% endif %}
       <span class="galerie-admin-supprimer">
         <input type="checkbox" name="supprimer_media[]" value="{{ m.id }}">

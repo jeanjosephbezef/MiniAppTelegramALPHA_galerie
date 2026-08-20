@@ -22,7 +22,7 @@
 </head>
 
 
-<body {% if apparence and apparence.fond_ecran %}style="background-image:url('{{ url_for('static', filename='images/' + apparence.fond_ecran) }}');"{% endif %} class="{% if apparence and apparence.dock_categories_actif and categories_dock %}has-dock{% endif %}">
+<body {% if apparence and apparence.fond_ecran %}style="background-image:url('{{ media_url(apparence.fond_ecran) }}');"{% endif %} class="{% if apparence and apparence.dock_categories_actif and categories_dock %}has-dock{% endif %}">
 
 
 <main>
@@ -45,7 +45,7 @@
         class="dock-item{% if request.view_args and request.view_args.get('nom') == cat.nom %} active{% endif %}"
     >
         {% if cat.image %}
-        <img src="{{ url_for('static', filename='images/' + cat.image) }}" alt="">
+        <img src="{{ media_url(cat.image) }}" alt="">
         {% else %}
         <span class="dock-icon">🌿</span>
         {% endif %}
@@ -59,7 +59,7 @@
 <footer>
 
 {% if apparence and apparence.logo %}
-<img src="{{ url_for('static', filename='images/' + apparence.logo) }}" alt="Logo" class="footer-logo">
+<img src="{{ media_url(apparence.logo) }}" alt="Logo" class="footer-logo">
 {% endif %}
 
 <p>

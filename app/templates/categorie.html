@@ -15,7 +15,7 @@
     <div class="produit-image-wrapper">
       <span class="badge-meetup">📍 MEET-UP</span>
       {% if produit.image %}
-      <img src="{{ url_for('static', filename='images/' + produit.image) }}" alt="{{ produit.nom }}">
+      <img src="{{ media_url(produit.image) }}" alt="{{ produit.nom }}">
       {% endif %}
     </div>
 
