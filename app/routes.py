@@ -619,12 +619,47 @@ def verify_shop_access():
     """Appelée automatiquement depuis chaque page de la boutique (voir
     base.html) quand elle est ouverte depuis Telegram. Vérifie si l'ID
     Telegram de la personne est dans la blacklist permanente
-    (blocked_ids.json) — même liste que pour l'accès admin."""
+    (blocked_ids.json) — même liste que pour l'accès admin.
+
+    Mémorise aussi l'ID dans la session (cookie signé) : si la personne
+    rouvre ensuite le même lien hors Telegram (navigateur classique, même
+    appareil), le blocage continue de s'appliquer côté serveur via
+    _bloquer_blackliste_session ci-dessous."""
     init_data = request.get_json(silent=True) or {}
     user = security.verifier_init_data(init_data.get("initData", ""))
 
+    if user and user.get("id") is not None:
+        session["tg_id"] = user["id"]
+
     bloque = bool(user and security.id_est_bloque(user.get("id")))
     return {"blocked": bloque}
+
+
+@main.before_request
+def _bloquer_blackliste_session():
+    """Bloque l'accès à toute page boutique pour un ID Telegram déjà
+    reconnu comme blacklisté, même hors Telegram (lien ouvert dans un
+    navigateur classique) — tant que le cookie de session (posé lors
+    d'un premier passage via Telegram) est présent sur cet appareil.
+
+    Ne s'applique jamais aux routes /admin/* (contrôle séparé et déjà
+    plus strict), ni à /verify-shop-access elle-même, ni aux fichiers
+    statiques."""
+    if (
+        request.path.startswith("/admin")
+        or request.path == "/verify-shop-access"
+        or request.path.startswith("/static")
+    ):
+        return
+
+    tg_id = session.get("tg_id")
+    if tg_id and security.id_est_bloque(tg_id):
+        return (
+            '<div style="display:flex;align-items:center;justify-content:center;'
+            'height:100vh;text-align:center;padding:24px;font-family:sans-serif;">'
+            "<p>⛔ Accès refusé.</p></div>",
+            403,
+        )
 
 
 @main.route("/admin/verify-telegram", methods=["POST"])
