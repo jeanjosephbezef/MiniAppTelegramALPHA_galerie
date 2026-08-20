@@ -191,3 +191,62 @@ class Parametre(db.Model):
     # Message envoyé par le bot Telegram quand un client fait /start.
     # Vide -> on retombe sur le message par défaut codé dans bot.py.
     message_bienvenue = db.Column(db.String(500))
+
+    # --- Bannière promo / annonce colorée en haut de l'accueil ---
+    promo_banniere_active = db.Column(db.Boolean, default=False)
+    promo_banniere_texte = db.Column(db.String(200))
+    promo_banniere_couleur = db.Column(db.String(7), default="#ff4444")
+
+    # --- Badges produits ---
+    badge_nouveau_actif = db.Column(db.Boolean, default=False)
+    badge_nouveau_jours = db.Column(db.Integer, default=7)
+    badge_promo_actif = db.Column(db.Boolean, default=False)
+
+    # --- Devise ---
+    devise_symbole = db.Column(db.String(10), default="€")
+    devise_position = db.Column(db.String(10), default="apres")  # "avant" ou "apres"
+
+    # --- Pied de page / contact ---
+    footer_actif = db.Column(db.Boolean, default=True)
+    footer_texte = db.Column(db.String(200))
+    contact_telegram = db.Column(db.String(100))
+
+    # --- Réseaux sociaux ---
+    social_instagram = db.Column(db.String(150))
+    social_telegram_channel = db.Column(db.String(150))
+
+    # --- Mode maintenance ---
+    maintenance_active = db.Column(db.Boolean, default=False)
+    maintenance_message = db.Column(
+        db.String(200), default="Boutique en maintenance, revenez bientôt !"
+    )
+
+    # --- CSS personnalisé (avancé) ---
+    css_personnalise = db.Column(db.Text)
+
+    # --- Thème & couleurs ---
+    theme_mode = db.Column(db.String(10), default="dark")       # "dark" ou "light"
+    background_color = db.Column(db.String(7))                   # fond uni si pas de fond_ecran
+    couleur_secondaire = db.Column(db.String(7))                 # cartes / sections
+    couleur_texte = db.Column(db.String(7))
+
+    # --- Typographie ---
+    police = db.Column(db.String(50), default="Inter")           # Inter, sans-serif, serif, monospace, Poppins
+    taille_texte_base = db.Column(db.Integer, default=16)        # px
+
+    # --- Identité (compléments) ---
+    slogan = db.Column(db.String(150))
+    banniere = db.Column(db.String(255))                         # image large en haut de l'accueil
+
+    # --- Dock catégories (style + ordre géré via Category.ordre) ---
+    dock_style = db.Column(db.String(10), default="both")        # "icones", "texte", "both"
+
+    # --- Cartes produits ---
+    style_carte = db.Column(db.String(10), default="rounded")    # "rounded", "square", "minimal"
+    arrondi_carte = db.Column(db.Integer, default=15)            # px
+    produits_par_ligne = db.Column(db.Integer, default=0)        # 0 = auto, sinon 1/2/3
+    badge_stock_actif = db.Column(db.Boolean, default=False)
+
+    # --- Boutons & effets ---
+    style_bouton = db.Column(db.String(10), default="filled")    # "filled", "outline", "ghost"
+    animations_actives = db.Column(db.Boolean, default=True)

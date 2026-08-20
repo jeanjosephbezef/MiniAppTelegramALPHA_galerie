@@ -39,8 +39,16 @@
 
     <div class="produit-image-wrapper">
       <span class="badge-meetup">📍 MEET-UP</span>
+      {% if est_nouveau(produit) %}
+      <span class="badge-meetup" style="left:8px;right:auto;background:#2ecc71;">✨ NOUVEAU</span>
+      {% endif %}
       {% if produit.image %}
       <img src="{{ media_url(produit.image) }}" alt="{{ produit.nom }}">
+      {% endif %}
+      {% if apparence and apparence.badge_stock_actif %}
+      <span class="badge-stock {% if produit.stock and produit.stock > 0 %}en-stock{% else %}rupture{% endif %}">
+        {% if produit.stock and produit.stock > 0 %}En stock{% else %}Rupture{% endif %}
+      </span>
       {% endif %}
     </div>
 

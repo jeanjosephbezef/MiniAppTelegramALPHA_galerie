@@ -113,3 +113,67 @@ def _migrer_colonnes_manquantes():
                     "VARCHAR(500)"
                 )
             )
+        if "promo_banniere_active" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN promo_banniere_active BOOLEAN DEFAULT 0")
+            )
+        if "promo_banniere_texte" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN promo_banniere_texte VARCHAR(200)")
+            )
+        if "promo_banniere_couleur" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN promo_banniere_couleur VARCHAR(7)")
+            )
+        if "badge_nouveau_actif" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN badge_nouveau_actif BOOLEAN DEFAULT 0")
+            )
+        if "badge_nouveau_jours" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN badge_nouveau_jours INTEGER DEFAULT 7")
+            )
+        if "badge_promo_actif" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN badge_promo_actif BOOLEAN DEFAULT 0")
+            )
+        if "devise_symbole" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN devise_symbole VARCHAR(10)")
+            )
+        if "devise_position" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN devise_position VARCHAR(10)")
+            )
+        if "footer_actif" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN footer_actif BOOLEAN DEFAULT 1")
+            )
+        if "footer_texte" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN footer_texte VARCHAR(200)")
+            )
+        if "contact_telegram" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN contact_telegram VARCHAR(100)")
+            )
+        if "social_instagram" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN social_instagram VARCHAR(150)")
+            )
+        if "social_telegram_channel" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN social_telegram_channel VARCHAR(150)")
+            )
+        if "maintenance_active" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN maintenance_active BOOLEAN DEFAULT 0")
+            )
+        if "maintenance_message" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN maintenance_message VARCHAR(200)")
+            )
+        if "css_personnalise" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN css_personnalise TEXT")
+            )

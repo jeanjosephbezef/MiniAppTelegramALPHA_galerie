@@ -170,6 +170,416 @@
     </form>
   </section>
 
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Bannière promo</h2>
+    <p class="apparence-note">
+      Bandeau coloré affiché en haut de l'accueil pour mettre en avant une offre.
+    </p>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="promo_banniere">
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="promo_banniere_active"
+               {% if parametre.promo_banniere_active %}checked{% endif %}>
+        Activer la bannière promo
+      </label>
+
+      <label for="promo_banniere_texte">Texte</label>
+      <input type="text" id="promo_banniere_texte" name="promo_banniere_texte"
+             value="{{ parametre.promo_banniere_texte or '' }}"
+             placeholder="ex : 🎉 -10% ce week-end">
+
+      <label for="promo_banniere_couleur">Couleur</label>
+      <input type="color" id="promo_banniere_couleur" name="promo_banniere_couleur"
+             value="{{ parametre.promo_banniere_couleur or '#ff4444' }}">
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Badges produits</h2>
+    <p class="apparence-note">
+      Affiche des étiquettes "Nouveau" ou "Promo" sur les fiches produits.
+    </p>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="badges">
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="badge_nouveau_actif"
+               {% if parametre.badge_nouveau_actif %}checked{% endif %}>
+        Afficher le badge "Nouveau"
+      </label>
+
+      <label for="badge_nouveau_jours">Durée du badge (jours après ajout)</label>
+      <input type="number" id="badge_nouveau_jours" name="badge_nouveau_jours" min="1" max="60"
+             value="{{ parametre.badge_nouveau_jours or 7 }}">
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="badge_promo_actif"
+               {% if parametre.badge_promo_actif %}checked{% endif %}>
+        Afficher le badge "Promo"
+      </label>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Devise</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="devise">
+
+      <label for="devise_symbole">Symbole</label>
+      <input type="text" id="devise_symbole" name="devise_symbole" maxlength="5"
+             value="{{ parametre.devise_symbole or '€' }}">
+
+      <label for="devise_position">Position</label>
+      <select id="devise_position" name="devise_position">
+        <option value="apres" {% if (parametre.devise_position or 'apres') == 'apres' %}selected{% endif %}>Après (10€)</option>
+        <option value="avant" {% if parametre.devise_position == 'avant' %}selected{% endif %}>Avant (€10)</option>
+      </select>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Pied de page &amp; contact</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="footer">
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="footer_actif"
+               {% if parametre.footer_actif %}checked{% endif %}>
+        Afficher le pied de page
+      </label>
+
+      <label for="footer_texte">Texte du pied de page</label>
+      <input type="text" id="footer_texte" name="footer_texte"
+             value="{{ parametre.footer_texte or '' }}"
+             placeholder="ex : © 2026 Le Filon 74">
+
+      <label for="contact_telegram">Contact Telegram (@pseudo)</label>
+      <input type="text" id="contact_telegram" name="contact_telegram"
+             value="{{ parametre.contact_telegram or '' }}"
+             placeholder="@monsupport">
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Réseaux sociaux</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="reseaux">
+
+      <label for="social_instagram">Lien Instagram</label>
+      <input type="text" id="social_instagram" name="social_instagram"
+             value="{{ parametre.social_instagram or '' }}">
+
+      <label for="social_telegram_channel">Lien canal Telegram</label>
+      <input type="text" id="social_telegram_channel" name="social_telegram_channel"
+             value="{{ parametre.social_telegram_channel or '' }}">
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Mode maintenance</h2>
+    <p class="apparence-note">
+      Ferme temporairement la boutique aux clients (l'espace admin reste accessible).
+    </p>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="maintenance">
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="maintenance_active"
+               {% if parametre.maintenance_active %}checked{% endif %}>
+        Activer le mode maintenance
+      </label>
+
+      <label for="maintenance_message">Message affiché aux clients</label>
+      <input type="text" id="maintenance_message" name="maintenance_message"
+             value="{{ parametre.maintenance_message or 'Boutique en maintenance, revenez bientôt !' }}">
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">CSS personnalisé (avancé)</h2>
+    <p class="apparence-note">
+      Pour aller plus loin que les options ci-dessus. À utiliser avec précaution.
+    </p>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="css_personnalise">
+
+      <textarea id="css_personnalise" name="css_personnalise" rows="6"
+                style="font-family:monospace;font-size:12px;"
+                placeholder=".mon-element { color: red; }">{{ parametre.css_personnalise or '' }}</textarea>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Thème &amp; couleurs</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="theme_couleurs">
+
+      <label for="theme_mode">Mode</label>
+      <select id="theme_mode" name="theme_mode">
+        <option value="dark" {% if (parametre.theme_mode or 'dark') == 'dark' %}selected{% endif %}>Sombre</option>
+        <option value="light" {% if parametre.theme_mode == 'light' %}selected{% endif %}>Clair</option>
+      </select>
+
+      <label for="background_color">Couleur de fond unie (utilisée si pas de fond d'écran)</label>
+      <input type="color" id="background_color" name="background_color"
+             value="{{ parametre.background_color or '#0d0d0d' }}">
+
+      <label for="couleur_secondaire">Couleur secondaire (cartes / sections)</label>
+      <input type="color" id="couleur_secondaire" name="couleur_secondaire"
+             value="{{ parametre.couleur_secondaire or '#151515' }}">
+
+      <label for="couleur_texte">Couleur du texte</label>
+      <input type="color" id="couleur_texte" name="couleur_texte"
+             value="{{ parametre.couleur_texte or '#f0f0f0' }}">
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Typographie</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="typographie">
+
+      <label for="police">Police</label>
+      <select id="police" name="police">
+        <option value="Inter" {% if (parametre.police or 'Inter') == 'Inter' %}selected{% endif %}>Inter (défaut)</option>
+        <option value="sans-serif" {% if parametre.police == 'sans-serif' %}selected{% endif %}>Sans-serif</option>
+        <option value="serif" {% if parametre.police == 'serif' %}selected{% endif %}>Serif</option>
+        <option value="monospace" {% if parametre.police == 'monospace' %}selected{% endif %}>Monospace</option>
+        <option value="Poppins" {% if parametre.police == 'Poppins' %}selected{% endif %}>Poppins</option>
+      </select>
+
+      <label for="taille_texte_base">Taille de texte de base (px)</label>
+      <input type="range" id="taille_texte_base" name="taille_texte_base" min="12" max="20"
+             value="{{ parametre.taille_texte_base or 16 }}">
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Slogan &amp; bannière</h2>
+
+    {% if parametre.banniere %}
+    <div class="fond-apercu">
+      <img src="{{ media_url(parametre.banniere) }}" alt="Bannière actuelle">
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="identite_complement">
+
+      <label for="slogan">Slogan / accroche</label>
+      <input type="text" id="slogan" name="slogan"
+             value="{{ parametre.slogan or '' }}"
+             placeholder="ex : Livraison rapide et discrète">
+
+      <label for="banniere">Image de bannière (affichée en haut de l'accueil)</label>
+      <input type="file" id="banniere" name="banniere" accept="image/*">
+
+      {% if parametre.banniere %}
+      <label class="apparence-toggle">
+        <input type="checkbox" name="supprimer_banniere">
+        Retirer la bannière actuelle
+      </label>
+      {% endif %}
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Style du dock</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="dock_style">
+
+      <label for="dock_style">Affichage</label>
+      <select id="dock_style" name="dock_style">
+        <option value="both" {% if (parametre.dock_style or 'both') == 'both' %}selected{% endif %}>Icônes + texte</option>
+        <option value="icones" {% if parametre.dock_style == 'icones' %}selected{% endif %}>Icônes seules</option>
+        <option value="texte" {% if parametre.dock_style == 'texte' %}selected{% endif %}>Texte seul</option>
+      </select>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+
+    {% if categories_dock %}
+    <p class="apparence-note" style="margin-top:16px;">
+      Ordre d'affichage dans le dock (glisse pour réordonner) :
+    </p>
+    <div id="dock-ordre-liste">
+      {% for cat in categories_dock %}
+      <div class="dock-ordre-item" draggable="true" data-id="{{ cat.id }}"
+           style="padding:10px;margin:5px 0;background:#1c1c1c;border-radius:8px;cursor:grab;border:1px solid #333;">
+        ☰ {{ cat.nom }}
+      </div>
+      {% endfor %}
+    </div>
+    <p id="dock-ordre-statut" class="apparence-note" style="min-height:16px;"></p>
+    {% endif %}
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Cartes produits</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="cartes">
+
+      <label for="style_carte">Style</label>
+      <select id="style_carte" name="style_carte">
+        <option value="rounded" {% if (parametre.style_carte or 'rounded') == 'rounded' %}selected{% endif %}>Arrondi</option>
+        <option value="square" {% if parametre.style_carte == 'square' %}selected{% endif %}>Carré</option>
+        <option value="minimal" {% if parametre.style_carte == 'minimal' %}selected{% endif %}>Minimaliste</option>
+      </select>
+
+      <label for="arrondi_carte">Arrondi des coins (px)</label>
+      <input type="range" id="arrondi_carte" name="arrondi_carte" min="0" max="24"
+             value="{{ parametre.arrondi_carte or 15 }}">
+
+      <label for="produits_par_ligne">Produits par ligne</label>
+      <select id="produits_par_ligne" name="produits_par_ligne">
+        <option value="0" {% if not parametre.produits_par_ligne %}selected{% endif %}>Auto (par défaut)</option>
+        <option value="1" {% if parametre.produits_par_ligne == 1 %}selected{% endif %}>1</option>
+        <option value="2" {% if parametre.produits_par_ligne == 2 %}selected{% endif %}>2</option>
+        <option value="3" {% if parametre.produits_par_ligne == 3 %}selected{% endif %}>3</option>
+      </select>
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="badge_stock_actif"
+               {% if parametre.badge_stock_actif %}checked{% endif %}>
+        Afficher un badge de disponibilité (en stock / rupture)
+      </label>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Boutons &amp; effets</h2>
+
+    <form method="POST" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="boutons_effets">
+
+      <label for="style_bouton">Style des boutons</label>
+      <select id="style_bouton" name="style_bouton">
+        <option value="filled" {% if (parametre.style_bouton or 'filled') == 'filled' %}selected{% endif %}>Plein</option>
+        <option value="outline" {% if parametre.style_bouton == 'outline' %}selected{% endif %}>Contour</option>
+        <option value="ghost" {% if parametre.style_bouton == 'ghost' %}selected{% endif %}>Discret</option>
+      </select>
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="animations_actives"
+               {% if parametre.animations_actives is not False %}checked{% endif %}>
+        Activer les animations
+      </label>
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
+    <h2 class="apparence-soustitre">Réinitialisation</h2>
+    <p class="apparence-note">
+      Remet toute la personnalisation de cette page à ses valeurs par défaut
+      (fond, couleurs, typographie, cartes, boutons, bannière promo, badges,
+      devise, footer, réseaux sociaux, maintenance, CSS personnalisé).
+    </p>
+
+    <form method="POST" class="admin-form" onsubmit="return confirm('Réinitialiser toute la personnalisation ? Cette action est irréversible.');">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="reset_apparence">
+      <button type="submit" class="btn-secondaire">Tout réinitialiser</button>
+    </form>
+  </section>
+
 </div>
+
+<script>
+(function () {
+  var liste = document.getElementById('dock-ordre-liste');
+  if (!liste) return;
+
+  var dragged;
+  liste.querySelectorAll('.dock-ordre-item').forEach(function (item) {
+    item.addEventListener('dragstart', function () {
+      dragged = item;
+      item.style.opacity = '0.5';
+    });
+    item.addEventListener('dragend', function () {
+      item.style.opacity = '1';
+    });
+    item.addEventListener('dragover', function (e) { e.preventDefault(); });
+    item.addEventListener('drop', function (e) {
+      e.preventDefault();
+      if (dragged !== item) {
+        var items = Array.from(liste.children);
+        var draggedIdx = items.indexOf(dragged);
+        var targetIdx = items.indexOf(item);
+        if (draggedIdx < targetIdx) item.after(dragged);
+        else item.before(dragged);
+        enregistrerOrdre();
+      }
+    });
+  });
+
+  function enregistrerOrdre() {
+    var ordre = Array.from(liste.querySelectorAll('.dock-ordre-item')).map(function (el) {
+      return el.dataset.id;
+    });
+    var statut = document.getElementById('dock-ordre-statut');
+    fetch("{{ url_for('main.admin_dock_reordonner') }}", {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ordre: ordre })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (statut) statut.textContent = data.success ? 'Ordre enregistré ✅' : 'Erreur lors de l\'enregistrement';
+      })
+      .catch(function () {
+        if (statut) statut.textContent = 'Erreur réseau';
+      });
+  }
+})();
+</script>
 
 {% endblock %}

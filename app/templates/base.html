@@ -13,8 +13,18 @@
 
 
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-{% if apparence and apparence.couleur_accent %}
-<style>:root { --accent-color: {{ apparence.couleur_accent }}; }</style>
+<style>
+  :root {
+    {% if apparence and apparence.couleur_accent %}--accent-color: {{ apparence.couleur_accent }};{% endif %}
+    {% if apparence and apparence.couleur_secondaire %}--secondary-color: {{ apparence.couleur_secondaire }};{% endif %}
+    {% if apparence and apparence.couleur_texte %}--text-color: {{ apparence.couleur_texte }};{% endif %}
+    {% if apparence and apparence.police %}--font-family: '{{ apparence.police }}', Arial, sans-serif;{% endif %}
+    {% if apparence and apparence.taille_texte_base %}--font-size-base: {{ apparence.taille_texte_base }}px;{% endif %}
+    {% if apparence and apparence.arrondi_carte is not none %}--card-radius: {{ apparence.arrondi_carte }}px;{% endif %}
+  }
+</style>
+{% if apparence and apparence.css_personnalise %}
+<style>{{ apparence.css_personnalise | safe }}</style>
 {% endif %}
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
@@ -22,8 +32,38 @@
 </head>
 
 
-<body {% if apparence and apparence.fond_ecran %}style="background-image:url('{{ media_url(apparence.fond_ecran) }}');"{% endif %} class="{% if apparence and apparence.dock_categories_actif and categories_dock %}has-dock{% endif %}">
+<body
+  {% if apparence and apparence.fond_ecran %}
+  style="background-image:url('{{ media_url(apparence.fond_ecran) }}');"
+  {% elif apparence and apparence.background_color %}
+  style="background-image:none;background-color:{{ apparence.background_color }};"
+  {% endif %}
+  class="
+    {% if apparence and apparence.dock_categories_actif and categories_dock %}has-dock{% endif %}
+    {% if apparence and apparence.theme_mode == 'light' %}theme-light{% endif %}
+    {% if apparence and apparence.style_carte == 'square' %}card-square{% elif apparence and apparence.style_carte == 'minimal' %}card-minimal{% endif %}
+    {% if apparence and apparence.style_bouton == 'outline' %}btn-outline{% elif apparence and apparence.style_bouton == 'ghost' %}btn-ghost{% endif %}
+    {% if apparence and apparence.animations_actives is sameas false %}no-animations{% endif %}
+    {% if apparence and apparence.produits_par_ligne %}cols-{{ apparence.produits_par_ligne }}{% endif %}
+    {% if apparence and apparence.dock_style == 'icones' %}dock-icones-seules{% elif apparence and apparence.dock_style == 'texte' %}dock-texte-seul{% endif %}
+  "
+>
 
+{% if apparence and apparence.promo_banniere_active and apparence.promo_banniere_texte %}
+<div style="background:{{ apparence.promo_banniere_couleur or '#ff4444' }};color:#fff;text-align:center;padding:8px;font-size:14px;">
+    {{ apparence.promo_banniere_texte }}
+</div>
+{% endif %}
+
+{% if apparence and apparence.banniere %}
+<img src="{{ media_url(apparence.banniere) }}" alt="Bannière" style="width:100%;display:block;">
+{% endif %}
+
+{% if apparence and apparence.slogan %}
+<p style="text-align:center;padding:6px 12px;font-size:13px;color:var(--text-color,#f0f0f0);opacity:0.8;">
+  {{ apparence.slogan }}
+</p>
+{% endif %}
 
 <main>
 
@@ -44,12 +84,16 @@
         href="{{ url_for('main.categorie', nom=cat.nom) }}"
         class="dock-item{% if request.view_args and request.view_args.get('nom') == cat.nom %} active{% endif %}"
     >
+        {% if apparence and apparence.dock_style != 'texte' %}
         {% if cat.image %}
         <img src="{{ media_url(cat.image) }}" alt="">
         {% else %}
         <span class="dock-icon">🌿</span>
         {% endif %}
+        {% endif %}
+        {% if not apparence or apparence.dock_style != 'icones' %}
         <span class="dock-label">{{ cat.nom }}</span>
+        {% endif %}
     </a>
     {% endfor %}
 </nav>
@@ -58,13 +102,33 @@
 
 <footer>
 
+{% if not apparence or apparence.footer_actif %}
+
 {% if apparence and apparence.logo %}
 <img src="{{ media_url(apparence.logo) }}" alt="Logo" class="footer-logo">
 {% endif %}
 
 <p>
+{% if apparence and apparence.footer_texte %}
+{{ apparence.footer_texte }}
+{% else %}
 © {{ apparence.nom_boutique if apparence and apparence.nom_boutique else "LE FILON 74" }} - Boutique Premium
+{% endif %}
 </p>
+
+{% if apparence and apparence.contact_telegram %}
+<p><a href="{{ lien_telegram(apparence.contact_telegram) }}">{{ apparence.contact_telegram }}</a></p>
+{% endif %}
+
+{% if apparence and (apparence.social_instagram or apparence.social_telegram_channel) %}
+<p class="footer-social">
+  {% if apparence.social_instagram %}<a href="{{ apparence.social_instagram }}" target="_blank">Instagram</a>{% endif %}
+  {% if apparence.social_instagram and apparence.social_telegram_channel %} · {% endif %}
+  {% if apparence.social_telegram_channel %}<a href="{{ apparence.social_telegram_channel }}" target="_blank">Canal Telegram</a>{% endif %}
+</p>
+{% endif %}
+
+{% endif %}
 
 </footer>
 

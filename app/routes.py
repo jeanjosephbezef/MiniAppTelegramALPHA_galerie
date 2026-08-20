@@ -4,6 +4,7 @@ import requests
 import hmac
 import re
 from functools import wraps
+from datetime import datetime
 
 import cloudinary
 import cloudinary.uploader
@@ -113,6 +114,35 @@ def lien_telegram(telegram_id):
         return f"tg://user?id={valeur}"
 
     return f"https://t.me/{valeur}"
+
+
+def est_nouveau(produit):
+    """True si le produit a été créé il y a moins de X jours (configuré
+    dans Admin > Apparence > Badges produits), pour afficher le badge
+    'Nouveau' sur sa fiche/carte."""
+    parametre = Parametre.query.first()
+    if not parametre or not parametre.badge_nouveau_actif or not produit.date_creation:
+        return False
+    jours = parametre.badge_nouveau_jours or 7
+    return (datetime.utcnow() - produit.date_creation).days < jours
+
+
+main.add_app_template_global(est_nouveau, name="est_nouveau")
+
+
+def prix_affiche(valeur):
+    """Formate un prix avec le symbole de devise configuré (Admin >
+    Apparence > Devise), avant ou après selon le réglage."""
+    parametre = Parametre.query.first()
+    symbole = (parametre.devise_symbole if parametre else None) or "€"
+    position = (parametre.devise_position if parametre else None) or "apres"
+    valeur_formatee = f"{valeur:.2f}"
+    if position == "avant":
+        return f"{symbole}{valeur_formatee}"
+    return f"{valeur_formatee}{symbole}"
+
+
+main.add_app_template_global(prix_affiche, name="prix_affiche")
 
 
 main.add_app_template_global(lien_telegram, name="lien_telegram")
@@ -698,6 +728,29 @@ def verify_shop_access():
 
     bloque = bool(user and security.id_est_bloque(user.get("id")))
     return {"blocked": bloque}
+
+
+@main.before_request
+def _bloquer_si_maintenance():
+    """Affiche le message de maintenance à la place de la boutique quand
+    le mode maintenance est activé, sauf pour l'espace admin (pour
+    pouvoir le désactiver) et les fichiers statiques."""
+    if (
+        request.path.startswith("/admin")
+        or request.path.startswith("/static")
+    ):
+        return
+
+    parametre = Parametre.query.first()
+    if parametre and parametre.maintenance_active:
+        message = parametre.maintenance_message or "Boutique en maintenance, revenez bientôt !"
+        return (
+            '<div style="display:flex;align-items:center;justify-content:center;'
+            'height:100vh;text-align:center;padding:24px;font-family:sans-serif;'
+            'background:#111;color:#fff;">'
+            f"<p>🚧 {message}</p></div>",
+            503
+        )
 
 
 @main.before_request
@@ -1342,11 +1395,134 @@ def admin_apparence():
             else:
                 flash("Couleur invalide.")
 
+        elif action == "promo_banniere":
+            parametre.promo_banniere_active = "promo_banniere_active" in request.form
+            parametre.promo_banniere_texte = request.form.get("promo_banniere_texte", "").strip() or None
+            couleur = request.form.get("promo_banniere_couleur", "").strip()
+            if len(couleur) == 7 and couleur.startswith("#"):
+                parametre.promo_banniere_couleur = couleur
+            flash("Bannière promo mise à jour.")
+
+        elif action == "badges":
+            parametre.badge_nouveau_actif = "badge_nouveau_actif" in request.form
+            parametre.badge_nouveau_jours = request.form.get("badge_nouveau_jours", type=int) or 7
+            parametre.badge_promo_actif = "badge_promo_actif" in request.form
+            flash("Badges produits mis à jour.")
+
+        elif action == "devise":
+            parametre.devise_symbole = request.form.get("devise_symbole", "").strip() or "€"
+            parametre.devise_position = request.form.get("devise_position", "apres")
+            flash("Devise mise à jour.")
+
+        elif action == "footer":
+            parametre.footer_actif = "footer_actif" in request.form
+            parametre.footer_texte = request.form.get("footer_texte", "").strip() or None
+            parametre.contact_telegram = request.form.get("contact_telegram", "").strip() or None
+            flash("Pied de page mis à jour.")
+
+        elif action == "reseaux":
+            parametre.social_instagram = request.form.get("social_instagram", "").strip() or None
+            parametre.social_telegram_channel = request.form.get("social_telegram_channel", "").strip() or None
+            flash("Réseaux sociaux mis à jour.")
+
+        elif action == "maintenance":
+            parametre.maintenance_active = "maintenance_active" in request.form
+            parametre.maintenance_message = request.form.get("maintenance_message", "").strip() or None
+            flash("Mode maintenance mis à jour.")
+
+        elif action == "css_personnalise":
+            parametre.css_personnalise = request.form.get("css_personnalise", "").strip() or None
+            flash("CSS personnalisé mis à jour.")
+
+        elif action == "theme_couleurs":
+            parametre.theme_mode = request.form.get("theme_mode", "dark")
+            for champ, valeur_defaut in (
+                ("background_color", None),
+                ("couleur_secondaire", None),
+                ("couleur_texte", None),
+            ):
+                valeur = request.form.get(champ, "").strip()
+                if valeur and len(valeur) == 7 and valeur.startswith("#"):
+                    setattr(parametre, champ, valeur)
+                else:
+                    setattr(parametre, champ, valeur_defaut)
+            flash("Thème et couleurs mis à jour.")
+
+        elif action == "typographie":
+            parametre.police = request.form.get("police", "Inter")
+            parametre.taille_texte_base = request.form.get("taille_texte_base", type=int) or 16
+            flash("Typographie mise à jour.")
+
+        elif action == "identite_complement":
+            parametre.slogan = request.form.get("slogan", "").strip() or None
+            nouvelle_banniere = request.files.get("banniere")
+            if nouvelle_banniere and nouvelle_banniere.filename:
+                parametre.banniere = sauvegarder_image(nouvelle_banniere)
+            elif request.form.get("supprimer_banniere"):
+                parametre.banniere = None
+            flash("Identité complémentaire mise à jour.")
+
+        elif action == "dock_style":
+            parametre.dock_style = request.form.get("dock_style", "both")
+            flash("Style du dock mis à jour.")
+
+        elif action == "cartes":
+            parametre.style_carte = request.form.get("style_carte", "rounded")
+            parametre.arrondi_carte = request.form.get("arrondi_carte", type=int) or 15
+            parametre.produits_par_ligne = request.form.get("produits_par_ligne", type=int) or 0
+            parametre.badge_stock_actif = "badge_stock_actif" in request.form
+            flash("Cartes produits mises à jour.")
+
+        elif action == "boutons_effets":
+            parametre.style_bouton = request.form.get("style_bouton", "filled")
+            parametre.animations_actives = "animations_actives" in request.form
+            flash("Boutons et effets mis à jour.")
+
+        elif action == "reset_apparence":
+            for champ in (
+                "fond_ecran", "logo", "couleur_accent", "annonce_texte",
+                "nom_boutique", "message_bienvenue",
+                "promo_banniere_active", "promo_banniere_texte", "promo_banniere_couleur",
+                "badge_nouveau_actif", "badge_nouveau_jours", "badge_promo_actif",
+                "devise_symbole", "devise_position",
+                "footer_actif", "footer_texte", "contact_telegram",
+                "social_instagram", "social_telegram_channel",
+                "maintenance_active", "maintenance_message", "css_personnalise",
+                "theme_mode", "background_color", "couleur_secondaire", "couleur_texte",
+                "police", "taille_texte_base", "slogan", "banniere",
+                "dock_style", "style_carte", "arrondi_carte", "produits_par_ligne",
+                "badge_stock_actif", "style_bouton", "animations_actives",
+            ):
+                setattr(parametre, champ, Parametre.__table__.columns[champ].default.arg
+                        if Parametre.__table__.columns[champ].default is not None else None)
+            flash("Toute la personnalisation a été réinitialisée par défaut.")
+
         db.session.commit()
 
         return redirect(url_for("main.admin_apparence"))
 
     return render_template("admin/apparence.html", parametre=parametre)
+
+
+@main.route("/admin/dock/reordonner", methods=["POST"])
+@admin_required
+@csrf.exempt
+def admin_dock_reordonner():
+    """Reçoit la nouvelle liste d'IDs de catégories dans l'ordre choisi
+    par glisser-déposer (Admin > Apparence > Dock catégories) et met à
+    jour Category.ordre en conséquence. Appelé en AJAX depuis le JS de
+    la page apparence — répond en JSON."""
+
+    donnees = request.get_json(silent=True) or {}
+    ids_ordonnes = donnees.get("ordre", [])
+
+    for position, cat_id in enumerate(ids_ordonnes):
+        categorie = Category.query.get(cat_id)
+        if categorie:
+            categorie.ordre = position
+
+    db.session.commit()
+    return {"success": True}
 
 
 # ==========================
