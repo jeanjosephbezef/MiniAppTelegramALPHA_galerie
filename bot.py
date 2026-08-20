@@ -106,7 +106,10 @@ def _user_dict(update: Update) -> dict:
 def _notifier_intrusion(update: Update, autorise: bool = False):
     """Journalise la tentative dans security.log et envoie l'alerte
     Telegram habituelle — même format que pour les tentatives via le
-    site web, pour un historique unifié."""
+    site web, pour un historique unifié. Si la personne à l'origine
+    de la tentative est elle-même un admin (ex: mauvais mot de passe
+    tapé par erreur), elle n'est jamais notifiée de sa propre
+    tentative — seuls les autres admins le sont."""
     user_dict = _user_dict(update)
     security.journaliser_tentative(
         user_dict, autorise, ip=None, user_agent="Bot Telegram"
@@ -114,7 +117,7 @@ def _notifier_intrusion(update: Update, autorise: bool = False):
     texte = security._construire_texte_alerte(
         user_dict, ip="(via bot Telegram)", user_agent=None, geo=None
     )
-    security.envoyer_alerte_telegram(texte)
+    security.envoyer_alerte_telegram(texte, exclure_id=update.effective_user.id)
 
 
 def _notifier_connexion_admin(update: Update):
