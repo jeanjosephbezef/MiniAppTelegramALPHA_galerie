@@ -87,7 +87,7 @@ def _migrer_colonnes_manquantes():
             connexion.execute(
                 text(
                     "ALTER TABLE parametre ADD COLUMN dock_categories_actif "
-                    "BOOLEAN DEFAULT 1"
+                    "BOOLEAN DEFAULT TRUE"
                 )
             )
         if "annonce_texte" not in colonnes:
@@ -115,7 +115,7 @@ def _migrer_colonnes_manquantes():
             )
         if "promo_banniere_active" not in colonnes:
             connexion.execute(
-                text("ALTER TABLE parametre ADD COLUMN promo_banniere_active BOOLEAN DEFAULT 0")
+                text("ALTER TABLE parametre ADD COLUMN promo_banniere_active BOOLEAN DEFAULT FALSE")
             )
         if "promo_banniere_texte" not in colonnes:
             connexion.execute(
@@ -127,7 +127,7 @@ def _migrer_colonnes_manquantes():
             )
         if "badge_nouveau_actif" not in colonnes:
             connexion.execute(
-                text("ALTER TABLE parametre ADD COLUMN badge_nouveau_actif BOOLEAN DEFAULT 0")
+                text("ALTER TABLE parametre ADD COLUMN badge_nouveau_actif BOOLEAN DEFAULT FALSE")
             )
         if "badge_nouveau_jours" not in colonnes:
             connexion.execute(
@@ -135,7 +135,7 @@ def _migrer_colonnes_manquantes():
             )
         if "badge_promo_actif" not in colonnes:
             connexion.execute(
-                text("ALTER TABLE parametre ADD COLUMN badge_promo_actif BOOLEAN DEFAULT 0")
+                text("ALTER TABLE parametre ADD COLUMN badge_promo_actif BOOLEAN DEFAULT FALSE")
             )
         if "devise_symbole" not in colonnes:
             connexion.execute(
@@ -147,7 +147,7 @@ def _migrer_colonnes_manquantes():
             )
         if "footer_actif" not in colonnes:
             connexion.execute(
-                text("ALTER TABLE parametre ADD COLUMN footer_actif BOOLEAN DEFAULT 1")
+                text("ALTER TABLE parametre ADD COLUMN footer_actif BOOLEAN DEFAULT TRUE")
             )
         if "footer_texte" not in colonnes:
             connexion.execute(
@@ -167,7 +167,7 @@ def _migrer_colonnes_manquantes():
             )
         if "maintenance_active" not in colonnes:
             connexion.execute(
-                text("ALTER TABLE parametre ADD COLUMN maintenance_active BOOLEAN DEFAULT 0")
+                text("ALTER TABLE parametre ADD COLUMN maintenance_active BOOLEAN DEFAULT FALSE")
             )
         if "maintenance_message" not in colonnes:
             connexion.execute(
@@ -176,4 +176,64 @@ def _migrer_colonnes_manquantes():
         if "css_personnalise" not in colonnes:
             connexion.execute(
                 text("ALTER TABLE parametre ADD COLUMN css_personnalise TEXT")
+            )
+        if "theme_mode" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN theme_mode VARCHAR(10)")
+            )
+        if "background_color" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN background_color VARCHAR(7)")
+            )
+        if "couleur_secondaire" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN couleur_secondaire VARCHAR(7)")
+            )
+        if "couleur_texte" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN couleur_texte VARCHAR(7)")
+            )
+        if "police" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN police VARCHAR(50)")
+            )
+        if "taille_texte_base" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN taille_texte_base INTEGER DEFAULT 16")
+            )
+        if "slogan" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN slogan VARCHAR(150)")
+            )
+        if "banniere" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN banniere VARCHAR(255)")
+            )
+        if "dock_style" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN dock_style VARCHAR(10)")
+            )
+        if "style_carte" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN style_carte VARCHAR(10)")
+            )
+        if "arrondi_carte" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN arrondi_carte INTEGER DEFAULT 15")
+            )
+        if "produits_par_ligne" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN produits_par_ligne INTEGER DEFAULT 0")
+            )
+        if "badge_stock_actif" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN badge_stock_actif BOOLEAN DEFAULT FALSE")
+            )
+        if "style_bouton" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN style_bouton VARCHAR(10)")
+            )
+        if "animations_actives" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN animations_actives BOOLEAN DEFAULT TRUE")
             )
