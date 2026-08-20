@@ -151,22 +151,21 @@ def _blacklister_id(user_id: int):
     security.sauvegarder_ids_bloques(ids_bloques)
 
 
-async def _alerter_piege_declenche(context: ContextTypes.DEFAULT_TYPE, update: Update):
+async def _alerter_avec_choix(context: ContextTypes.DEFAULT_TYPE, update: Update, entete: str):
     """Envoie à chaque admin une alerte avec deux boutons pour décider,
-    au cas par cas, de blacklister ou d'ignorer l'ID qui vient de taper
-    le mot de passe piège. Ne blackliste rien automatiquement."""
+    au cas par cas, de blacklister ou d'ignorer l'ID à l'origine de
+    l'événement. Ne blackliste rien automatiquement — utilisée aussi
+    bien pour le mot de passe piège que pour un /admin tapé par un
+    utilisateur non reconnu."""
     user_dict = _user_dict(update)
     cible_id = update.effective_user.id
 
     security.journaliser_tentative(
-        user_dict, autorise=False, ip=None, user_agent="Bot Telegram — PIÈGE DÉCLENCHÉ"
+        user_dict, autorise=False, ip=None, user_agent="Bot Telegram"
     )
 
-    texte = (
-        "🪤 PIÈGE DÉCLENCHÉ — mot de passe piège utilisé\n\n"
-        + security._construire_texte_alerte(
-            user_dict, ip="(via bot Telegram)", user_agent=None, geo=None
-        )
+    texte = entete + "\n\n" + security._construire_texte_alerte(
+        user_dict, ip="(via bot Telegram)", user_agent=None, geo=None
     )
 
     clavier = InlineKeyboardMarkup([
@@ -184,7 +183,15 @@ async def _alerter_piege_declenche(context: ContextTypes.DEFAULT_TYPE, update: U
                 chat_id=admin_id, text=texte, reply_markup=clavier
             )
         except Exception as e:
-            print(f"Impossible d'envoyer l'alerte piège à {admin_id} : {e}")
+            print(f"Impossible d'envoyer l'alerte à {admin_id} : {e}")
+
+
+async def _alerter_piege_declenche(context: ContextTypes.DEFAULT_TYPE, update: Update):
+    """Cas particulier de _alerter_avec_choix : mot de passe piège tapé
+    dans le flux /admin."""
+    await _alerter_avec_choix(
+        context, update, "🪤 PIÈGE DÉCLENCHÉ — mot de passe piège utilisé"
+    )
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -524,9 +531,16 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     la commande (aucune réponse)."""
     user_id = update.effective_user.id
 
-    if user_id not in ADMIN_IDS or _est_blackliste(user_id):
+    if _est_blackliste(user_id):
         _notifier_intrusion(update, autorise=False)
-        return  # silence total, pas de message, pas d'indice que /admin existe
+        return  # silence total, décision déjà prise (blacklisté)
+
+    if user_id not in ADMIN_IDS:
+        await _alerter_avec_choix(
+            context, update,
+            "🚫 /admin tapé par un utilisateur non reconnu"
+        )
+        return  # silence total côté chat, pas d'indice que /admin existe
 
     # même comportement que /start pour un admin : redemande le mot de passe
     context.user_data["awaiting_admin_password"] = True
