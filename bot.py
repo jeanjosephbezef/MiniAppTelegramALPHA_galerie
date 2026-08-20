@@ -110,20 +110,9 @@ def _notifier_intrusion(update: Update, autorise: bool = False):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
     _track(context, update.message.message_id)
 
-    if user_id in ADMIN_IDS:
-        # utilisateur reconnu comme admin -> on lui demande le mot de passe
-        context.user_data["awaiting_admin_password"] = True
-        msg = await update.message.reply_text(
-            "Bonjour 👋 Tu es reconnu comme administrateur.\n\n"
-            "Entre le mot de passe admin pour accéder à la boutique et à l'espace admin :"
-        )
-        _track(context, msg.message_id)
-        return
-
-    # utilisateur normal -> accès direct à la boutique
+    # /start ouvre toujours directement la boutique, admin ou pas
     clavier = InlineKeyboardMarkup([
         [InlineKeyboardButton(
             text="🛍️ Ouvrir la boutique",
@@ -193,7 +182,7 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
     else:
         vient_de_bloquer = security.enregistrer_echec(cle_blocage)
         _notifier_intrusion(update, autorise=False)
-        texte = "❌ Mot de passe incorrect. Retape /start pour réessayer."
+        texte = "❌ Mot de passe incorrect. Retape /admin pour réessayer."
         if vient_de_bloquer:
             texte = "⛔ Trop de tentatives échouées. Accès bloqué temporairement."
         msg = await update.message.reply_text(texte)
@@ -408,7 +397,7 @@ async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # même comportement que /start pour un admin : redemande le mot de passe
     context.user_data["awaiting_admin_password"] = True
     msg = await update.message.reply_text(
-        "🔐 Entre le mot de passe admin pour accéder à la boutique et à l'espace admin :"
+        "Vérification d'identité"
     )
     _track(context, update.message.message_id)
     _track(context, msg.message_id)
