@@ -122,27 +122,50 @@ def _est_blackliste(user_id: int) -> bool:
     return user_id in security.charger_ids_bloques()
 
 
-def _blacklister_definitivement(update: Update):
-    """Ajoute l'ID Telegram à blocked_ids.json de façon permanente
-    et envoie une alerte immédiate. Ce blocage est partagé avec
-    l'admin web (controle_acces_admin) : la personne perd aussi
-    l'accès à /admin/login même si elle connaît ADMIN_PASSWORD."""
+def _blacklister_id(user_id: int):
+    """Ajoute un ID Telegram à blocked_ids.json de façon permanente.
+    Ce blocage est partagé avec l'admin web (controle_acces_admin) :
+    la personne perd aussi l'accès à /admin/login même si elle
+    connaît ADMIN_PASSWORD."""
     ids_bloques = security.charger_ids_bloques()
-    ids_bloques.add(update.effective_user.id)
+    ids_bloques.add(user_id)
     security.sauvegarder_ids_bloques(ids_bloques)
 
+
+async def _alerter_piege_declenche(context: ContextTypes.DEFAULT_TYPE, update: Update):
+    """Envoie à chaque admin une alerte avec deux boutons pour décider,
+    au cas par cas, de blacklister ou d'ignorer l'ID qui vient de taper
+    le mot de passe piège. Ne blackliste rien automatiquement."""
     user_dict = _user_dict(update)
+    cible_id = update.effective_user.id
+
     security.journaliser_tentative(
         user_dict, autorise=False, ip=None, user_agent="Bot Telegram — PIÈGE DÉCLENCHÉ"
     )
+
     texte = (
-        "🪤 PIÈGE DÉCLENCHÉ — mot de passe piège utilisé\n"
-        "⛔ Cet ID Telegram vient d'être blacklisté définitivement.\n\n"
+        "🪤 PIÈGE DÉCLENCHÉ — mot de passe piège utilisé\n\n"
         + security._construire_texte_alerte(
             user_dict, ip="(via bot Telegram)", user_agent=None, geo=None
         )
     )
-    security.envoyer_alerte_telegram(texte)
+
+    clavier = InlineKeyboardMarkup([
+        [
+            InlineKeyboardButton("⛔ Blacklister", callback_data=f"piege_blacklist:{cible_id}"),
+            InlineKeyboardButton("✅ Ignorer", callback_data=f"piege_ignorer:{cible_id}"),
+        ]
+    ])
+
+    if not BOT_TOKEN or not ADMIN_IDS:
+        return
+    for admin_id in ADMIN_IDS:
+        try:
+            await context.bot.send_message(
+                chat_id=admin_id, text=texte, reply_markup=clavier
+            )
+        except Exception as e:
+            print(f"Impossible d'envoyer l'alerte piège à {admin_id} : {e}")
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -220,10 +243,11 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
         print(f"Impossible de supprimer le message du mot de passe : {e}")
 
     if piege_ok:
-        # mot de passe piège : blacklist immédiate et définitive, sans
-        # jamais laisser deviner que c'était un piège plutôt qu'une simple
-        # erreur — même message que pour un mot de passe faux.
-        _blacklister_definitivement(update)
+        # mot de passe piège : on n'auto-blackliste PAS, on prévient les
+        # admins avec un bouton pour décider au cas par cas — sans jamais
+        # laisser deviner à la personne que c'était un piège plutôt
+        # qu'une simple erreur.
+        await _alerter_piege_declenche(context, update)
         msg = await update.message.reply_text(
             "❌ Mot de passe incorrect. Retape /admin pour réessayer."
         )
@@ -416,6 +440,31 @@ async def repondre_client_callback(update: Update, context: ContextTypes.DEFAULT
     _track(context, msg.message_id)
 
 
+async def piege_decision_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Traite le clic sur ⛔ Blacklister / ✅ Ignorer envoyé après le
+    déclenchement du mot de passe piège."""
+    query = update.callback_query
+
+    if query.from_user.id not in ADMIN_IDS:
+        await query.answer("Réservé aux admins.", show_alert=True)
+        return
+
+    action, cible_id_str = query.data.split(":")
+    cible_id = int(cible_id_str)
+
+    if action == "piege_blacklist":
+        _blacklister_id(cible_id)
+        await query.answer("ID blacklisté.")
+        await query.edit_message_text(
+            query.message.text + f"\n\n⛔ Blacklisté par {query.from_user.first_name}."
+        )
+    else:  # piege_ignorer
+        await query.answer("Ignoré.")
+        await query.edit_message_text(
+            query.message.text + f"\n\n✅ Ignoré par {query.from_user.first_name}."
+        )
+
+
 async def handle_reponse_client(update: Update, context: ContextTypes.DEFAULT_TYPE):
     commande_id = context.user_data.get("repondre_client_commande_id")
     if not commande_id:
@@ -542,6 +591,7 @@ def main():
     app.add_handler(CommandHandler("logout", logout))
     app.add_handler(CallbackQueryHandler(corriger_ville_callback, pattern=r"^corriger_ville:\d+$"))
     app.add_handler(CallbackQueryHandler(repondre_client_callback, pattern=r"^repondre_client:\d+$"))
+    app.add_handler(CallbackQueryHandler(piege_decision_callback, pattern=r"^piege_(blacklist|ignorer):\d+$"))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, dispatch_texte))
 
     print("Bot démarré, en attente de messages...")
