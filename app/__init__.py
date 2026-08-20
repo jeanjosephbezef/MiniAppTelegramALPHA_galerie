@@ -50,6 +50,29 @@ def _migrer_colonnes_manquantes():
 
     inspecteur = inspect(db.engine)
 
+    if "produit" in inspecteur.get_table_names():
+        colonnes_produit = [c["name"] for c in inspecteur.get_columns("produit")]
+        with db.engine.begin() as connexion:
+            if "actif" not in colonnes_produit:
+                connexion.execute(
+                    text("ALTER TABLE produit ADD COLUMN actif BOOLEAN DEFAULT TRUE")
+                )
+                connexion.execute(
+                    text("UPDATE produit SET actif = TRUE WHERE actif IS NULL")
+                )
+
+    for table in ("category", "categorie_principale"):
+        if table in inspecteur.get_table_names():
+            colonnes = [c["name"] for c in inspecteur.get_columns(table)]
+            if "ordre" not in colonnes:
+                with db.engine.begin() as connexion:
+                    connexion.execute(
+                        text(f"ALTER TABLE {table} ADD COLUMN ordre INTEGER DEFAULT 0")
+                    )
+                    connexion.execute(
+                        text(f"UPDATE {table} SET ordre = 0 WHERE ordre IS NULL")
+                    )
+
     if "parametre" not in inspecteur.get_table_names():
         return
 
