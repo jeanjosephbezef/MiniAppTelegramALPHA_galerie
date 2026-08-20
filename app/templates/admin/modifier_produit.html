@@ -25,7 +25,7 @@
   </div>
 
   <label for="description">Description</label>
-  <textarea id="description" name="description" rows="4" required>{{ produit.description }}</textarea>
+  <textarea id="description" name="description" rows="4">{{ produit.description or '' }}</textarea>
 
   {% set sous_cat_actuelle = categories|selectattr("nom", "equalto", produit.categorie)|first %}
 

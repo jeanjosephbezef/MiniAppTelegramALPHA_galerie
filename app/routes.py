@@ -912,7 +912,7 @@ def nouveau_produit():
 
         produit = Produit(
             nom=request.form["nom"],
-            description=request.form["description"],
+            description=request.form.get("description", "").strip() or None,
             prix=0,  # sera recalculé juste après depuis les variantes
             categorie=request.form["categorie"],
             cbd=request.form.get("cbd"),
@@ -960,7 +960,7 @@ def modifier_produit(id):
     if request.method == "POST":
 
         produit.nom = request.form["nom"]
-        produit.description = request.form["description"]
+        produit.description = request.form.get("description", "").strip() or None
         produit.categorie = request.form["categorie"]
         produit.cbd = request.form.get("cbd")
         produit.thc = request.form.get("thc")
