@@ -67,6 +67,13 @@ WEBAPP_URL = os.environ.get("WEBAPP_URL")
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")       # mot de passe pour la page web /admin/login
 BOT_ADMIN_PASSWORD = os.environ.get("BOT_ADMIN_PASSWORD")  # mot de passe pour la reconnaissance dans le bot
 
+# Mot de passe "piège" : s'il est entré à la place du vrai mot de passe admin,
+# l'ID Telegram est immédiatement et définitivement blacklisté (fichier
+# blocked_ids.json, partagé avec le contrôle d'accès de l'admin web).
+# Optionnel : si BOT_TRAP_PASSWORD n'est pas défini dans .env, cette
+# fonctionnalité est simplement désactivée.
+BOT_TRAP_PASSWORD = os.environ.get("BOT_TRAP_PASSWORD")
+
 # IDs Telegram autorisés à accéder à l'espace admin, lus depuis .env
 # (ADMIN_TELEGRAM_IDS=8702997904,0000000000) pour rester synchronisés
 # avec app/security.py sans dupliquer la liste en dur à deux endroits.
@@ -109,6 +116,35 @@ def _notifier_intrusion(update: Update, autorise: bool = False):
     security.envoyer_alerte_telegram(texte)
 
 
+def _est_blackliste(user_id: int) -> bool:
+    """True si cet ID Telegram a été blacklisté définitivement
+    (via blocked_ids.json), y compris s'il figure dans ADMIN_IDS."""
+    return user_id in security.charger_ids_bloques()
+
+
+def _blacklister_definitivement(update: Update):
+    """Ajoute l'ID Telegram à blocked_ids.json de façon permanente
+    et envoie une alerte immédiate. Ce blocage est partagé avec
+    l'admin web (controle_acces_admin) : la personne perd aussi
+    l'accès à /admin/login même si elle connaît ADMIN_PASSWORD."""
+    ids_bloques = security.charger_ids_bloques()
+    ids_bloques.add(update.effective_user.id)
+    security.sauvegarder_ids_bloques(ids_bloques)
+
+    user_dict = _user_dict(update)
+    security.journaliser_tentative(
+        user_dict, autorise=False, ip=None, user_agent="Bot Telegram — PIÈGE DÉCLENCHÉ"
+    )
+    texte = (
+        "🪤 PIÈGE DÉCLENCHÉ — mot de passe piège utilisé\n"
+        "⛔ Cet ID Telegram vient d'être blacklisté définitivement.\n\n"
+        + security._construire_texte_alerte(
+            user_dict, ip="(via bot Telegram)", user_agent=None, geo=None
+        )
+    )
+    security.envoyer_alerte_telegram(texte)
+
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     _track(context, update.message.message_id)
 
@@ -136,6 +172,24 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
 
     cle_blocage = f"tg:{update.effective_user.id}"
 
+    if _est_blackliste(update.effective_user.id):
+        # ID blacklisté définitivement (ex: piège déjà déclenché) : on
+        # continue de répondre comme si le mot de passe était faux, sans
+        # jamais révéler que ce compte est bloqué de façon permanente.
+        try:
+            await context.bot.delete_message(
+                chat_id=update.effective_chat.id,
+                message_id=update.message.message_id,
+            )
+        except Exception:
+            pass
+        _notifier_intrusion(update, autorise=False)
+        msg = await update.message.reply_text(
+            "❌ Mot de passe incorrect. Retape /admin pour réessayer."
+        )
+        _track(context, msg.message_id)
+        return True
+
     if security.est_temporairement_bloque(cle_blocage):
         try:
             await context.bot.delete_message(
@@ -152,6 +206,9 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
         return True
 
     password_ok = hmac.compare_digest(update.message.text.strip(), BOT_ADMIN_PASSWORD)
+    piege_ok = bool(BOT_TRAP_PASSWORD) and hmac.compare_digest(
+        update.message.text.strip(), BOT_TRAP_PASSWORD
+    )
 
     # supprime le message contenant le mot de passe pour qu'il n'apparaisse pas dans le chat
     try:
@@ -162,13 +219,20 @@ async def handle_admin_password(update: Update, context: ContextTypes.DEFAULT_TY
     except Exception as e:
         print(f"Impossible de supprimer le message du mot de passe : {e}")
 
+    if piege_ok:
+        # mot de passe piège : blacklist immédiate et définitive, sans
+        # jamais laisser deviner que c'était un piège plutôt qu'une simple
+        # erreur — même message que pour un mot de passe faux.
+        _blacklister_definitivement(update)
+        msg = await update.message.reply_text(
+            "❌ Mot de passe incorrect. Retape /admin pour réessayer."
+        )
+        _track(context, msg.message_id)
+        return True
+
     if password_ok:
         security.reinitialiser_echecs(cle_blocage)
         clavier = InlineKeyboardMarkup([
-            [InlineKeyboardButton(
-                text="🛍️ Ouvrir la boutique",
-                web_app=WebAppInfo(url=WEBAPP_URL)
-            )],
             [InlineKeyboardButton(
                 text="🔐 Ouvrir l'admin",
                 web_app=WebAppInfo(url=f"{WEBAPP_URL}/admin/login")
@@ -386,11 +450,12 @@ async def handle_reponse_client(update: Update, context: ContextTypes.DEFAULT_TY
 
 
 async def admin(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Commande /admin — ne répond QUE si l'utilisateur est un ID admin reconnu.
-    Pour tout autre utilisateur, le bot ignore totalement la commande (aucune réponse)."""
+    """Commande /admin — ne répond QUE si l'utilisateur est un ID admin reconnu
+    et non blacklisté. Pour tout autre utilisateur, le bot ignore totalement
+    la commande (aucune réponse)."""
     user_id = update.effective_user.id
 
-    if user_id not in ADMIN_IDS:
+    if user_id not in ADMIN_IDS or _est_blackliste(user_id):
         _notifier_intrusion(update, autorise=False)
         return  # silence total, pas de message, pas d'indice que /admin existe
 
