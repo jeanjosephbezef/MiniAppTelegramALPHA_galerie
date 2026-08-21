@@ -49,7 +49,7 @@ border-bottom:1px solid rgba(79,195,247,0.5);
 
 font-size:28px;
 
-font-family:'Anton', sans-serif;
+font-family: var(--font-family, 'Anton', sans-serif);
 letter-spacing: 1px;
 text-transform: uppercase;
 
@@ -196,7 +196,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
     
     font-size:44px;
     
-    font-family:'Anton', sans-serif;
+    font-family: var(--font-family, 'Anton', sans-serif);
     letter-spacing: 1px;
     text-transform: uppercase;
     
@@ -343,7 +343,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
             color:var(--accent-color);
             
             font-size:35px;
-            font-family:'Anton', sans-serif;
+            font-family: var(--font-family, 'Anton', sans-serif);
             letter-spacing: 0.5px;
             text-transform: uppercase;
             
@@ -1067,7 +1067,7 @@ body.has-dock {
 .produit-header-titre {
     margin: 0;
     font-size: 18px;
-    font-family: 'Anton', sans-serif;
+    font-family: var(--font-family, 'Anton', sans-serif);
     letter-spacing: 0.5px;
     text-transform: uppercase;
     color: var(--accent-color);
