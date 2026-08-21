@@ -1,5 +1,75 @@
 :root {
   --accent-color: #4fc3f7;
+  --secondary-color: #1a1a1a;
+  --text-color: #f0f0f0;
+  --card-radius: 15px;
+  --font-size-base: 16px;
+}
+
+/* Le CSS du projet utilise des tailles en px sur les titres et éléments
+   spécifiques ; --font-size-base ne s'applique donc qu'au texte "courant"
+   (paragraphes, listes, boutons...) qui n'a pas sa propre taille figée. */
+
+/* --- Style des cartes produits (réglage "Cartes produits") --- */
+body.card-square .card {
+    border-radius: 0 !important;
+}
+
+body.card-minimal .card {
+    background: transparent !important;
+    box-shadow: none !important;
+    border: 1px solid rgba(240,240,240,0.15);
+    padding: 10px;
+}
+
+/* --- Nombre de produits par ligne (réglage "Cartes produits") --- */
+body.cols-1 .produits { grid-template-columns: 1fr; }
+body.cols-2 .produits { grid-template-columns: repeat(2, 1fr); }
+body.cols-3 .produits { grid-template-columns: repeat(3, 1fr); }
+
+/* --- Style des boutons (réglage "Boutons & effets") --- */
+body.btn-outline button,
+body.btn-outline .bouton,
+body.btn-outline .btn {
+    background: transparent !important;
+    border: 2px solid var(--accent-color) !important;
+    color: var(--accent-color) !important;
+}
+
+body.btn-ghost button,
+body.btn-ghost .bouton,
+body.btn-ghost .btn {
+    background: transparent !important;
+    border: none !important;
+    color: var(--accent-color) !important;
+    box-shadow: none !important;
+    text-decoration: underline;
+}
+
+/* --- Animations (réglage "Boutons & effets") --- */
+body.no-animations,
+body.no-animations * {
+    transition: none !important;
+    animation: none !important;
+}
+
+/* --- Mode clair (réglage "Thème & couleurs") --- */
+body.theme-light {
+    background-color: #f4f6f8;
+}
+
+body.theme-light * {
+    color: #14181c;
+    text-shadow: none;
+}
+
+body.theme-light .card {
+    background: rgba(255,255,255,0.85);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+body.theme-light header {
+    background: rgba(255,255,255,0.6);
 }
 
 .footer-logo {
@@ -13,7 +83,11 @@
 * {
     box-sizing:border-box;
     font-family: var(--font-family, 'Inter', Arial, sans-serif);
-    color:#f0f0f0; /* couleur de texte par défaut, lisible sur fond sombre */
+    color: var(--text-color, #f0f0f0); /* couleur de texte par défaut, lisible sur fond sombre */
+}
+
+body {
+    font-size: var(--font-size-base, 16px);
 }
 
 body {
@@ -107,9 +181,9 @@ color:#f0f0f0;
 
 .card {
 
-background:#151515;
+background: var(--secondary-color, #151515);
 
-border-radius:15px;
+border-radius: var(--card-radius, 15px);
 
 padding:15px;
 
@@ -245,7 +319,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
         background:rgba(21,21,21,0.4);
         
         
-        border-radius:20px;
+        border-radius: var(--card-radius, 20px);
         
         padding:20px;
         
@@ -253,7 +327,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
         
         border:1px solid rgba(79,195,247,0.25);
         
-        color:#f0f0f0;
+        color: var(--text-color, #f0f0f0);
         
         }
         
