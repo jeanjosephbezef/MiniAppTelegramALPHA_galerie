@@ -1,76 +1,78 @@
 :root {
   --accent-color: #4fc3f7;
-  --secondary-color: #1a1a1a;
+  --secondary-color: #151515;
   --text-color: #f0f0f0;
-  --card-radius: 15px;
+  --font-family: 'Inter', Arial, sans-serif;
   --font-size-base: 16px;
+  --card-radius: 15px;
 }
 
-/* Le CSS du projet utilise des tailles en px sur les titres et éléments
-   spécifiques ; --font-size-base ne s'applique donc qu'au texte "courant"
-   (paragraphes, listes, boutons...) qui n'a pas sa propre taille figée. */
+/* --- Thème clair (Admin > Apparence > Thème & couleurs) --- */
+body.theme-light {
+  color: #111;
+}
+body.theme-light .card {
+  background: #fff;
+  color: #111;
+  box-shadow: 0 0 10px rgba(0,0,0,0.15);
+}
+body.theme-light * {
+  color: #111;
+}
 
-/* --- Style des cartes produits (réglage "Cartes produits") --- */
+/* --- Styles de cartes produits --- */
 body.card-square .card {
-    border-radius: 0 !important;
+  border-radius: 0 !important;
 }
-
 body.card-minimal .card {
-    background: transparent !important;
-    box-shadow: none !important;
-    border: 1px solid rgba(240,240,240,0.15);
-    padding: 10px;
+  box-shadow: none;
+  background: transparent;
+  border: 1px solid #333;
 }
 
-/* --- Nombre de produits par ligne (réglage "Cartes produits") --- */
-body.cols-1 .produits { grid-template-columns: 1fr; }
-body.cols-2 .produits { grid-template-columns: repeat(2, 1fr); }
-body.cols-3 .produits { grid-template-columns: repeat(3, 1fr); }
-
-/* --- Style des boutons (réglage "Boutons & effets") --- */
-body.btn-outline button,
-body.btn-outline .bouton,
-body.btn-outline .btn {
-    background: transparent !important;
-    border: 2px solid var(--accent-color) !important;
-    color: var(--accent-color) !important;
+/* --- Styles de boutons --- */
+body.btn-outline button {
+  background: transparent;
+  border: 2px solid var(--accent-color);
+  color: var(--accent-color);
+}
+body.btn-ghost button {
+  background: transparent;
+  border: none;
+  color: var(--accent-color);
+  box-shadow: none;
 }
 
-body.btn-ghost button,
-body.btn-ghost .bouton,
-body.btn-ghost .btn {
-    background: transparent !important;
-    border: none !important;
-    color: var(--accent-color) !important;
-    box-shadow: none !important;
-    text-decoration: underline;
-}
-
-/* --- Animations (réglage "Boutons & effets") --- */
+/* --- Animations --- */
 body.no-animations,
 body.no-animations * {
-    transition: none !important;
-    animation: none !important;
+  transition: none !important;
+  animation: none !important;
 }
 
-/* --- Mode clair (réglage "Thème & couleurs") --- */
-body.theme-light {
-    background-color: #f4f6f8;
-}
+/* --- Produits par ligne (remplace l'auto-fit quand réglé dans Apparence) --- */
+body.cols-1 .produits { grid-template-columns: 1fr !important; }
+body.cols-2 .produits { grid-template-columns: repeat(2, 1fr) !important; }
+body.cols-3 .produits { grid-template-columns: repeat(3, 1fr) !important; }
 
-body.theme-light * {
-    color: #14181c;
-    text-shadow: none;
-}
+/* --- Dock catégories : icônes seules / texte seul --- */
+body.dock-icones-seules .dock-label { display: none; }
+body.dock-texte-seul .dock-icon,
+body.dock-texte-seul .dock-item img { display: none; }
 
-body.theme-light .card {
-    background: rgba(255,255,255,0.85);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+/* --- Badge de disponibilité (Admin > Apparence > Cartes produits) --- */
+.badge-stock {
+  position: absolute;
+  bottom: 8px;
+  left: 8px;
+  padding: 3px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #fff;
 }
-
-body.theme-light header {
-    background: rgba(255,255,255,0.6);
-}
+.badge-stock.en-stock { background: #2ecc71; }
+.badge-stock.rupture { background: #888; }
 
 .footer-logo {
   display: block;
@@ -82,15 +84,12 @@ body.theme-light header {
 
 * {
     box-sizing:border-box;
-    font-family: var(--font-family, 'Inter', Arial, sans-serif);
-    color: var(--text-color, #f0f0f0); /* couleur de texte par défaut, lisible sur fond sombre */
+    font-family: var(--font-family);
+    color: var(--text-color); /* couleur de texte par défaut, lisible sur fond sombre */
 }
 
 body {
-    font-size: var(--font-size-base, 16px);
-}
-
-body {
+    font-size: var(--font-size-base);
     background-image: url("../images/background.jpeg");
     background-size: cover;
     background-position: center;
@@ -123,7 +122,7 @@ border-bottom:1px solid rgba(79,195,247,0.5);
 
 font-size:28px;
 
-font-family: var(--font-family, 'Anton', sans-serif);
+font-family:'Anton', sans-serif;
 letter-spacing: 1px;
 text-transform: uppercase;
 
@@ -181,9 +180,9 @@ color:#f0f0f0;
 
 .card {
 
-background: var(--secondary-color, #151515);
+background: var(--secondary-color);
 
-border-radius: var(--card-radius, 15px);
+border-radius: var(--card-radius);
 
 padding:15px;
 
@@ -191,7 +190,9 @@ margin:15px 0;
 
 box-shadow:0 0 15px #000;
 
-color:#f0f0f0;
+color: var(--text-color);
+
+position: relative;
 
 }
 
@@ -270,7 +271,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
     
     font-size:44px;
     
-    font-family: var(--font-family, 'Anton', sans-serif);
+    font-family:'Anton', sans-serif;
     letter-spacing: 1px;
     text-transform: uppercase;
     
@@ -319,7 +320,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
         background:rgba(21,21,21,0.4);
         
         
-        border-radius: var(--card-radius, 20px);
+        border-radius:20px;
         
         padding:20px;
         
@@ -327,7 +328,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
         
         border:1px solid rgba(79,195,247,0.25);
         
-        color: var(--text-color, #f0f0f0);
+        color:#f0f0f0;
         
         }
         
@@ -417,7 +418,7 @@ text-shadow: 0 2px 8px rgba(0,0,0,0.9);
             color:var(--accent-color);
             
             font-size:35px;
-            font-family: var(--font-family, 'Anton', sans-serif);
+            font-family:'Anton', sans-serif;
             letter-spacing: 0.5px;
             text-transform: uppercase;
             
@@ -1141,7 +1142,7 @@ body.has-dock {
 .produit-header-titre {
     margin: 0;
     font-size: 18px;
-    font-family: var(--font-family, 'Anton', sans-serif);
+    font-family: 'Anton', sans-serif;
     letter-spacing: 0.5px;
     text-transform: uppercase;
     color: var(--accent-color);
