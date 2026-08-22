@@ -250,3 +250,10 @@ class Parametre(db.Model):
     # --- Boutons & effets ---
     style_bouton = db.Column(db.String(10), default="filled")    # "filled", "outline", "ghost"
     animations_actives = db.Column(db.Boolean, default=True)
+
+    # --- Écran de chargement (splash) à l'ouverture de la mini app ---
+    splash_actif = db.Column(db.Boolean, default=False)
+    splash_logo = db.Column(db.String(255))                      # image affichée pendant le chargement
+    splash_texte = db.Column(db.String(100))                     # texte optionnel sous le logo
+    splash_couleur_fond = db.Column(db.String(7), default="#0d0d0d")
+    splash_duree = db.Column(db.Integer, default=1500)           # ms

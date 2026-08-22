@@ -1478,6 +1478,22 @@ def admin_apparence():
             parametre.animations_actives = "animations_actives" in request.form
             flash("Boutons et effets mis à jour.")
 
+        elif action == "splash":
+            parametre.splash_actif = "splash_actif" in request.form
+            parametre.splash_texte = request.form.get("splash_texte", "").strip() or None
+            couleur = request.form.get("splash_couleur_fond", "").strip()
+            if len(couleur) == 7 and couleur.startswith("#"):
+                parametre.splash_couleur_fond = couleur
+            parametre.splash_duree = request.form.get("splash_duree", type=int) or 1500
+
+            nouveau_logo = request.files.get("splash_logo")
+            if nouveau_logo and nouveau_logo.filename:
+                parametre.splash_logo = sauvegarder_image(nouveau_logo)
+            elif request.form.get("supprimer_splash_logo"):
+                parametre.splash_logo = None
+
+            flash("Écran de chargement mis à jour.")
+
         elif action == "reset_apparence":
             for champ in (
                 "fond_ecran", "logo", "couleur_accent", "annonce_texte",
@@ -1492,6 +1508,7 @@ def admin_apparence():
                 "police", "taille_texte_base", "slogan", "banniere",
                 "dock_style", "style_carte", "arrondi_carte", "produits_par_ligne",
                 "badge_stock_actif", "style_bouton", "animations_actives",
+                "splash_actif", "splash_logo", "splash_texte", "splash_couleur_fond", "splash_duree",
             ):
                 setattr(parametre, champ, Parametre.__table__.columns[champ].default.arg
                         if Parametre.__table__.columns[champ].default is not None else None)

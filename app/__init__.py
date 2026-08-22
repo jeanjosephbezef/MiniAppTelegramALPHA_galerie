@@ -237,3 +237,23 @@ def _migrer_colonnes_manquantes():
             connexion.execute(
                 text("ALTER TABLE parametre ADD COLUMN animations_actives BOOLEAN DEFAULT TRUE")
             )
+        if "splash_actif" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN splash_actif BOOLEAN DEFAULT FALSE")
+            )
+        if "splash_logo" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN splash_logo VARCHAR(255)")
+            )
+        if "splash_texte" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN splash_texte VARCHAR(100)")
+            )
+        if "splash_couleur_fond" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN splash_couleur_fond VARCHAR(7)")
+            )
+        if "splash_duree" not in colonnes:
+            connexion.execute(
+                text("ALTER TABLE parametre ADD COLUMN splash_duree INTEGER DEFAULT 1500")
+            )

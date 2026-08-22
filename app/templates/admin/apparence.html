@@ -517,6 +517,54 @@
   </section>
 
   <section class="apparence-section">
+    <h2 class="apparence-soustitre">Écran de chargement</h2>
+    <p class="apparence-note">
+      Affiché brièvement à l'ouverture de la mini app, avant que la boutique n'apparaisse.
+    </p>
+
+    {% if parametre.splash_logo %}
+    <div class="fond-apercu">
+      <img src="{{ media_url(parametre.splash_logo) }}" alt="Logo splash actuel" style="max-width:120px;">
+    </div>
+    {% endif %}
+
+    <form method="POST" enctype="multipart/form-data" class="admin-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="hidden" name="action" value="splash">
+
+      <label class="apparence-toggle">
+        <input type="checkbox" name="splash_actif"
+               {% if parametre.splash_actif %}checked{% endif %}>
+        Activer l'écran de chargement
+      </label>
+
+      <label for="splash_logo">Logo affiché pendant le chargement</label>
+      <input type="file" id="splash_logo" name="splash_logo" accept="image/*">
+      {% if parametre.splash_logo %}
+      <label class="apparence-toggle">
+        <input type="checkbox" name="supprimer_splash_logo">
+        Retirer le logo actuel
+      </label>
+      {% endif %}
+
+      <label for="splash_texte">Texte affiché sous le logo (optionnel)</label>
+      <input type="text" id="splash_texte" name="splash_texte"
+             value="{{ parametre.splash_texte or '' }}" placeholder="ex : Chargement...">
+
+      <label for="splash_couleur_fond">Couleur de fond</label>
+      <input type="color" id="splash_couleur_fond" name="splash_couleur_fond"
+             value="{{ parametre.splash_couleur_fond or '#0d0d0d' }}">
+
+      <label for="splash_duree">Durée d'affichage : <span id="splashDureeLabel">{{ parametre.splash_duree or 1500 }}ms</span></label>
+      <input type="range" id="splash_duree" name="splash_duree" min="500" max="4000" step="100"
+             value="{{ parametre.splash_duree or 1500 }}"
+             oninput="document.getElementById('splashDureeLabel').textContent = this.value + 'ms'">
+
+      <button type="submit">Enregistrer</button>
+    </form>
+  </section>
+
+  <section class="apparence-section">
     <h2 class="apparence-soustitre">Réinitialisation</h2>
     <p class="apparence-note">
       Remet toute la personnalisation de cette page à ses valeurs par défaut

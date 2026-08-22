@@ -49,6 +49,39 @@
   "
 >
 
+{% if apparence and apparence.splash_actif %}
+<div id="splash-screen" style="
+    position:fixed; inset:0; z-index:9999;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    background:{{ apparence.splash_couleur_fond or '#0d0d0d' }};
+    transition:opacity 0.4s ease;
+  ">
+  {% if apparence.splash_logo %}
+  <img src="{{ media_url(apparence.splash_logo) }}" alt="Chargement"
+       style="max-width:140px;max-height:140px;{% if apparence.animations_actives is not sameas false %}animation:splash-pulse 1.4s ease-in-out infinite;{% endif %}">
+  {% endif %}
+  {% if apparence.splash_texte %}
+  <p style="margin-top:16px;color:#fff;font-size:14px;">{{ apparence.splash_texte }}</p>
+  {% endif %}
+</div>
+<style>
+  @keyframes splash-pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.7; transform: scale(0.94); }
+  }
+</style>
+<script>
+  window.addEventListener('load', function () {
+    setTimeout(function () {
+      var splash = document.getElementById('splash-screen');
+      if (!splash) return;
+      splash.style.opacity = '0';
+      setTimeout(function () { splash.remove(); }, 400);
+    }, {{ apparence.splash_duree or 1500 }});
+  });
+</script>
+{% endif %}
+
 {% if apparence and apparence.promo_banniere_active and apparence.promo_banniere_texte %}
 <div style="background:{{ apparence.promo_banniere_couleur or '#ff4444' }};color:#fff;text-align:center;padding:8px;font-size:14px;">
     {{ apparence.promo_banniere_texte }}
